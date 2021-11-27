@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "input.h"
 #include "mapfile.h"
 #include "sprite.h"
 
@@ -44,6 +45,11 @@ void video_start(void) {
     load_pal();
 
     memset(VGA, 0, 64000);
+}
+
+void WaitForVblank(void) {
+    while((inportb(0x3da) & 8) != 0);
+    while((inportb(0x3da) & 8) == 0);
 }
 
 void displaySheet(void) {
@@ -90,6 +96,7 @@ void displayPlane(int plane) {
 }
 
 void displayMap(void) {
+    memset(VGA, 0, 64000);
     displayPlane(0);
     displayPlane(1);
     displayPlane(2);
@@ -119,10 +126,12 @@ void restore_video(void) {
 }
 
 int main() {
+    int changed = 1;
+    int cur_screen = 0;
+
     readGGC("data/elek1.ggs", 0);
     readGGC("data/elek2.ggs", 1);
     map_load("data/elek.ggc");
-    map_decode(1);
     /*
     textMap();
 
@@ -130,13 +139,43 @@ int main() {
     getch();
     */
 
+    Input_Setup();
     video_start();
     //displaySheet();
-    displayMap();
 
-    while (!kbhit());
-    getch();
+    while (1) {
+        if (keyHeld[0x1] || keyHeld[0x10])
+            break;
 
+        if (changed) {
+            map_decode(cur_screen);
+            displayMap();
+            changed = 0;
+        }
+
+        if (keyDown[0x4b]) {
+            // left
+            cur_screen = (cur_screen & 240) | ((cur_screen - 1) & 15);
+            changed = 1;
+        } else if (keyDown[0x4d]) {
+            // right
+            cur_screen = (cur_screen & 240) | ((cur_screen + 1) & 15);
+            changed = 1;
+        } else if (keyDown[0x48]) {
+            // up
+            cur_screen = (cur_screen - 16) & 255;
+            changed = 1;
+        } else if (keyDown[0x50]) {
+            // down
+            cur_screen = (cur_screen + 16) & 255;
+            changed = 1;
+        }
+
+        memset(keyDown, 0, 101);
+        WaitForVblank();
+    }
+
+    Input_Shutdown();
     restore_video();
     map_free();
     free_sprites();

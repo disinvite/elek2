@@ -63,10 +63,10 @@ void map_decode(int room) {
     byte rpt;
     byte b;
 
-    if (!room_exists[room]) {
-        memset(current_room, 0, 4*13*8);
+    memset(current_room, 0, 4*13*8);
+    
+    if (!room_exists[room])
         return;
-    }
 
     for (plane = 0; plane < 4; plane++) {
         if (!plane_ofs[room][plane])

@@ -8,7 +8,8 @@ TASMFLAGS = /w2 /ml /o
 objs =  \
  main.obj \
  mapfile.obj \
- sprite.obj
+ sprite.obj \
+ input.obj
 
 elek2: $(objs)
   TLINK $(LDFLAGS) @&&!
