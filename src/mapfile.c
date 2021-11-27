@@ -5,9 +5,9 @@
 #include <stdlib.h>
 
 static byte room_exists[256];
-static int plane0_ofs[256];
+static int plane_ofs[256][4];
 
-byte current_room[8][13];
+byte current_room[4][8][13];
 
 static byte *rawmap;
 
@@ -41,7 +41,10 @@ void map_load(char *filename) {
             continue;
 
         fread(&_ofs, 2, 8, f);
-        plane0_ofs[i] = _ofs[0]; // TODO
+        plane_ofs[i][0] = _ofs[0];
+        plane_ofs[i][1] = _ofs[1];
+        plane_ofs[i][2] = _ofs[2];
+        plane_ofs[i][3] = _ofs[3];
     }
 
     remainder = filelength - ftell(f);
@@ -53,6 +56,7 @@ void map_load(char *filename) {
 
 void map_decode(int room) {
     int i, j;
+    int plane;
     byte *ptr;
     byte vertical;
     byte buf[13 * 8];
@@ -60,41 +64,48 @@ void map_decode(int room) {
     byte b;
 
     if (!room_exists[room]) {
-        memset(current_room, 0, 13*8);
+        memset(current_room, 0, 4*13*8);
         return;
     }
 
-    ptr = &rawmap[plane0_ofs[room] - 2048];
-    vertical = (*ptr) & 128;
-    ptr++;
-    i = 0;
+    for (plane = 0; plane < 4; plane++) {
+        if (!plane_ofs[room][plane])
+            continue;
 
-    while (i < 104) {
-        b = *ptr++;
-        if (b & 128) {
-            // plus one, very important.
-            rpt = *ptr++ + 1;
+        memset(buf, 0, 104);
 
-            // don't write too much
-            if (rpt + i > 104)
-                rpt = 104 - i;
+        ptr = &rawmap[plane_ofs[room][plane] - 2048];
+        vertical = (*ptr) & 128;
+        ptr++;
+        i = 0;
 
-            memset(&buf[i], b & 127, rpt);
-            i += rpt;
-        } else {
-            buf[i] = b & 127;
-            i++;
-        }
-    }
+        while (i < 104) {
+            b = *ptr++;
+            if (b & 128) {
+                // plus one, very important.
+                rpt = *ptr++ + 1;
 
-    if (vertical) {
-        for (i = 0; i < 8; i++) {
-            for (j = 0; j < 13; j++) {
-                current_room[i][j] = buf[8*j + i];
+                // don't write too much
+                if (rpt + i > 104)
+                    rpt = 104 - i;
+
+                memset(&buf[i], b & 127, rpt);
+                i += rpt;
+            } else {
+                buf[i] = b & 127;
+                i++;
             }
         }
-    } else {
-        memcpy(current_room, buf, 104);
+
+        if (vertical) {
+            for (i = 0; i < 8; i++) {
+                for (j = 0; j < 13; j++) {
+                    current_room[plane][i][j] = buf[8*j + i];
+                }
+            }
+        } else {
+            memcpy(current_room[plane], buf, 104);
+        }
     }
 }
 

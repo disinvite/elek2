@@ -29,7 +29,11 @@ void drawSprite(byte *sprite, int tx, int ty) {
     int i, j;
     int start = 320 * 24 * ty + 24 * tx;
     for (i = 0; i < 24; i++) {
-        memcpy(&VGA[start + 320*i], &sprite[24*i], 24);
+        //memcpy(&VGA[start + 320*i], &sprite[24*i], 24);
+        for (j = 0; j < 24; j++) {
+            if (sprite[24*i + j])
+                VGA[start + 320*i + j] = sprite[24*i + j];
+        }
     }
 }
 
@@ -60,7 +64,7 @@ void displaySheet(void) {
     }
 }
 
-void displayMap(void) {
+void displayPlane(int plane) {
     int row;
     int col;
     int which;
@@ -73,13 +77,23 @@ void displayMap(void) {
 
     for (row = 0; row < 8; row++) {
         for (col = 0; col < 13; col++) {
-            val = current_room[row][col];
+            val = current_room[plane][row][col];
+            if (!val)
+                continue;
+
             which = (val & 64) ? 1 : 0;
             spr = sheets[which][val & 63];
 
             drawSprite(spr, col, row);
         }
     }
+}
+
+void displayMap(void) {
+    displayPlane(0);
+    displayPlane(1);
+    displayPlane(2);
+    displayPlane(3);
 }
 
 void textMap(void) {
@@ -89,7 +103,7 @@ void textMap(void) {
 
     for (row = 0; row < 8; row++) {
         for (col = 0; col < 13; col++) {
-            val = current_room[row][col];
+            val = current_room[0][row][col];
             if (val)
                 printf("%02x ", val);
             else
@@ -108,7 +122,7 @@ int main() {
     readGGC("data/elek1.ggs", 0);
     readGGC("data/elek2.ggs", 1);
     map_load("data/elek.ggc");
-    map_decode(0);
+    map_decode(1);
     /*
     textMap();
 
@@ -117,7 +131,7 @@ int main() {
     */
 
     video_start();
-    displaySheet();
+    //displaySheet();
     displayMap();
 
     while (!kbhit());
