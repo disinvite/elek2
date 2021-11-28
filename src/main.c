@@ -29,6 +29,8 @@ void load_pal(void) {
 void drawSprite(byte *sprite, int tx, int ty) {
     int i, j;
     int start = 320 * 24 * ty + 24 * tx;
+    
+    /*
     for (i = 0; i < 24; i++) {
         //memcpy(&VGA[start + 320*i], &sprite[24*i], 24);
         for (j = 0; j < 24; j++) {
@@ -36,6 +38,33 @@ void drawSprite(byte *sprite, int tx, int ty) {
                 VGA[start + 320*i + j] = sprite[24*i + j];
         }
     }
+    */
+
+    asm push ds
+    asm push es
+
+    asm mov cx, 24
+    asm les di, [VGA]
+    asm lds si, [sprite]
+    asm mov di, [start]
+pixrow:
+    asm mov dx, 24
+pixcol:
+    asm lodsb
+    asm and al, al // 0 pixel is transparent.
+    asm jnz skipload
+    asm mov al, es:[di]
+skipload:
+    asm stosb
+    asm dec dx
+    asm jnz pixcol
+
+    asm add di, 296
+    asm dec cx
+    asm jnz pixrow
+
+    asm pop es
+    asm pop ds
 }
 
 void video_start(void) {
