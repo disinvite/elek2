@@ -10,6 +10,7 @@
 typedef unsigned char byte;
 
 byte *VGA = (byte*)(0xa0000000l);
+byte *offscreen;
 
 void load_pal(void) {
     int i;
@@ -44,9 +45,9 @@ void drawSprite(byte *sprite, int tx, int ty) {
     asm push es
 
     asm mov cx, 24
-    asm les di, [VGA]
+    asm les di, [offscreen]
     asm lds si, [sprite]
-    asm mov di, [start]
+    asm add di, [start]
 pixrow:
     asm mov dx, 24
 pixcol:
@@ -125,7 +126,7 @@ void displayPlane(int plane) {
 }
 
 void displayMap(void) {
-    memset(VGA, 0, 64000);
+    memset(offscreen, 0, 64000);
     displayPlane(0);
     displayPlane(1);
     displayPlane(2);
@@ -157,6 +158,8 @@ void restore_video(void) {
 int main() {
     int changed = 1;
     int cur_screen = 0;
+
+    offscreen = malloc(64000);
 
     readGGC("data/elek1.ggs", 0);
     readGGC("data/elek2.ggs", 1);
@@ -202,11 +205,15 @@ int main() {
 
         memset(keyDown, 0, 101);
         WaitForVblank();
+        memcpy(VGA, offscreen, 64000);
     }
 
     Input_Shutdown();
     restore_video();
     map_free();
     free_sprites();
+
+    free(offscreen);
+
     return 0;
 }
