@@ -9,7 +9,8 @@ objs =  \
  main.obj \
  mapfile.obj \
  sprite.obj \
- input.obj
+ input.obj \
+ dbgcon.obj
 
 elek2: $(objs)
   TLINK $(LDFLAGS) @&&!

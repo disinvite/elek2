@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "dbgcon.h"
 #include "input.h"
 #include "mapfile.h"
 #include "sprite.h"
@@ -158,6 +159,7 @@ void restore_video(void) {
 int main() {
     int changed = 1;
     int cur_screen = 0;
+    char buf[20];
 
     offscreen = malloc(64000);
 
@@ -173,6 +175,7 @@ int main() {
 
     Input_Setup();
     video_start();
+    DbgCon_Init("data/BALD8X8.FNT");
     //displaySheet();
 
     while (1) {
@@ -181,9 +184,14 @@ int main() {
 
         if (changed) {
             map_decode(cur_screen);
-            displayMap();
+            sprintf(buf, "screen %02x", cur_screen);
+            DbgCon_Insert(buf);
             changed = 0;
         }
+
+        displayMap();
+        DbgCon_Tick();
+        DbgCon_Draw(offscreen);
 
         if (keyDown[0x4b]) {
             // left
@@ -212,6 +220,7 @@ int main() {
     restore_video();
     map_free();
     free_sprites();
+    DbgCon_Close();
 
     free(offscreen);
 
