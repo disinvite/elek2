@@ -1,4 +1,5 @@
 #include <conio.h>
+#include <dos.h>
 #include <mem.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,10 @@ typedef unsigned char byte;
 
 byte *VGA = (byte*)(0xa0000000l);
 byte *offscreen;
+
+void interrupt (*oldPitFunction)(void);
+int game_tics = 0;
+int game_seconds = 0;
 
 void load_pal(void) {
     int i;
@@ -156,6 +161,33 @@ void restore_video(void) {
     asm int 0x10
 }
 
+void interrupt myPitTimer(void) {
+    game_tics++;
+    if (game_tics >= 8523) {
+        game_tics = 0;
+        game_seconds++;
+    }
+
+    outportb(0x20, 0x20);
+}
+
+void PIT_Setup(void) {
+    oldPitFunction = getvect(8);
+    setvect(8, &myPitTimer);
+
+    // PIT = ~8523hz
+    outportb(0x43, 0x34);
+    outportb(0x40, 0x8c);
+    outportb(0x40, 0);
+}
+
+void PIT_Close(void) {
+    setvect(8, oldPitFunction);
+    outportb(0x43, 0x34);
+    outportb(0x40, 0xff);
+    outportb(0x40, 0xff);
+}
+
 int main() {
     int changed = 1;
     int cur_screen = 0;
@@ -173,6 +205,7 @@ int main() {
     getch();
     */
 
+    PIT_Setup();
     Input_Setup();
     video_start();
     DbgCon_Init("data/BALD8X8.FNT");
@@ -191,7 +224,7 @@ int main() {
 
         displayMap();
         DbgCon_Tick();
-        DbgCon_Draw(offscreen);
+        DbgCon_Draw(offscreen, game_seconds);
 
         if (keyDown[0x4b]) {
             // left
@@ -221,6 +254,7 @@ int main() {
     map_free();
     free_sprites();
     DbgCon_Close();
+    PIT_Close();
 
     free(offscreen);
 

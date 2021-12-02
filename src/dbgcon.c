@@ -18,6 +18,10 @@ static dbg_entry_t *dStart;
 static dbg_entry_t *dEnd;
 static byte dbg_setup = 0;
 
+static int n_called = 0;
+static int stored_secs;
+static char fpsbuf[4];
+
 void DbgCon_Init(char *filename) {
     int i;
 
@@ -97,8 +101,10 @@ void DbgCon_Insert(char *msg) {
     }
 }
 
-void DbgCon_Draw(byte *buf) {
+void DbgCon_Draw(byte *buf, int secs) {
     int i;
+    char flipflop[2];
+
     dbg_entry_t *t = dStart;
     for (i = 0; i < kDbgMaxSize; i++) {
         if (t == dEnd)
@@ -107,6 +113,21 @@ void DbgCon_Draw(byte *buf) {
         DbgCon_Type(buf, t->msg, 10, 10 + 10*i, 2);
         t = t->next;
     }
+
+    n_called++;
+    if (stored_secs != secs) {
+        sprintf(fpsbuf, "%02d", n_called);
+        stored_secs = secs;
+        n_called = 0;
+    }
+
+    flipflop[0] = (n_called & 31) ? '.' : ' ';
+
+    DbgCon_Type(buf, flipflop, 313, 11, 0);
+    DbgCon_Type(buf, flipflop, 312, 10, 4);
+
+    DbgCon_Type(buf, fpsbuf, 281, 11, 0);
+    DbgCon_Type(buf, fpsbuf, 280, 10, 4);
 }
 
 void DbgCon_Tick(void) {
