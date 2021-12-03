@@ -12,6 +12,8 @@ typedef struct video_drv_s {
     void (*shutdown)(void);
     void (*clear)(void);
     void (*update)(void);
+    void (*set_fontface)(byte *font);
+    void (*type_msg)(char *msg, int x, int y, byte color);
     void (*update_palette)(color_t *pal);
     void (*draw24)(byte *src, int x, int y);
 } video_drv_t;

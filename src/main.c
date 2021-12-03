@@ -143,7 +143,7 @@ int main() {
     Input_Setup();
     mydrv->init();
     load_pal();
-    DbgCon_Init("data/BALD8X8.FNT");
+    DbgCon_Init("data/BALD8X8.FNT", mydrv);
     //displaySheet();
 
     while (1) {
@@ -159,7 +159,7 @@ int main() {
 
         displayMap();
         DbgCon_Tick();
-        //DbgCon_Draw(offscreen, game_seconds);
+        DbgCon_Draw(game_seconds);
 
         if (keyDown[0x4b]) {
             // left

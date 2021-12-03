@@ -3,6 +3,7 @@
 #include <dos.h>
 #include <mem.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "video.h"
 
@@ -12,6 +13,9 @@ static byte old_video_mode; // TODO: use this I guess
 
 static byte *VGA = (byte*)(0xa0000000l);
 static byte *offscreen;
+
+// 8x8 pixel font for debug display
+static byte *pixel_font = 0;
 
 static void init(void) {
     asm mov ax, 0x13
@@ -51,6 +55,43 @@ static void update_palette(color_t *pal) {
     }
 }
 
+static void set_fontface(byte *font) {
+    pixel_font = font;
+}
+
+static void type_msg(char *msg, int x, int y, byte color) {
+    int i;
+    int row;
+    byte b;
+    int ofs;
+    int t;
+    int len;
+
+    if (!pixel_font)
+        return;
+
+    //byte *start = &buf[320 * y];
+    len = strlen(msg);
+
+    for (i = 0; i < len; i++) {
+        ofs = msg[i] & 127;
+        for (row = 0; row < 8; row++) {
+            b = pixel_font[8*ofs + row];
+            for (t = 0; t < 8; t++) {
+                if (b&128)
+                    offscreen[320 * (y+row) + x + t] = color;
+                    //*(start + 320*row + x + t) = color;
+                b <<= 1;
+            }
+        }
+
+        x += 8;
+        // TODO: wrapping or whatever?
+        if (x > 312)
+            break;
+    }
+}
+
 static void draw24(byte *src, int x, int y) {
     int i, j;
     int start = 320 * 24 * y + 24 * x;
@@ -87,6 +128,8 @@ video_drv_t mode13_drv = {
     &shutdown,
     &clear,
     &update,
+    &set_fontface,
+    &type_msg,
     &update_palette,
     &draw24
 };
