@@ -11,7 +11,8 @@ objs =  \
  sprite.obj \
  input.obj \
  dbgcon.obj \
- v_mode13.obj
+ v_mode13.obj \
+ v_mode_y.obj
 
 elek2: $(objs)
   TLINK $(LDFLAGS) @&&!

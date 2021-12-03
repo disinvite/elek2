@@ -10,10 +10,11 @@
 #include "sprite.h"
 #include "video.h"
 #include "v_mode13.h"
+#include "v_mode_y.h"
 
 typedef unsigned char byte;
 
-video_drv_t *mydrv = &mode13_drv;
+video_drv_t *mydrv = &mode_y_drv;
 
 void interrupt (*oldPitFunction)(void);
 int game_tics = 0;
