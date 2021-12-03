@@ -10,7 +10,8 @@ objs =  \
  mapfile.obj \
  sprite.obj \
  input.obj \
- dbgcon.obj
+ dbgcon.obj \
+ v_mode13.obj
 
 elek2: $(objs)
   TLINK $(LDFLAGS) @&&!

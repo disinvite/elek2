@@ -13,10 +13,6 @@ typedef struct gge_sprite_s {
     byte v32_color[48];
 } gge_sprite_t;
 
-typedef struct {
-    byte r,g,b;
-} color_t;
-
 byte **getSpriteSlot(int slot);
 void free_sprites(void);
 void readGGC(char *filename, int slot);

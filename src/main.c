@@ -8,84 +8,24 @@
 #include "input.h"
 #include "mapfile.h"
 #include "sprite.h"
+#include "video.h"
+#include "v_mode13.h"
 
 typedef unsigned char byte;
 
-byte *VGA = (byte*)(0xa0000000l);
-byte *offscreen;
+video_drv_t *mydrv = &mode13_drv;
 
 void interrupt (*oldPitFunction)(void);
 int game_tics = 0;
 int game_seconds = 0;
 
 void load_pal(void) {
-    int i;
     color_t pal[256];
     FILE *f = fopen("data/em.pal", "rb");
     fread(&pal, 3, 256, f);
     fclose(f);
 
-    outportb(0x3c8, 0);
-    for(i = 0; i < 256; i++) {
-        outportb(0x3c9, pal[i].r);
-        outportb(0x3c9, pal[i].g);
-        outportb(0x3c9, pal[i].b);
-    }
-}
-
-void drawSprite(byte *sprite, int tx, int ty) {
-    int i, j;
-    int start = 320 * 24 * ty + 24 * tx;
-    
-    /*
-    for (i = 0; i < 24; i++) {
-        //memcpy(&VGA[start + 320*i], &sprite[24*i], 24);
-        for (j = 0; j < 24; j++) {
-            if (sprite[24*i + j])
-                VGA[start + 320*i + j] = sprite[24*i + j];
-        }
-    }
-    */
-
-    asm push ds
-    asm push es
-
-    asm mov cx, 24
-    asm les di, [offscreen]
-    asm lds si, [sprite]
-    asm add di, [start]
-pixrow:
-    asm mov dx, 24
-pixcol:
-    asm lodsb
-    asm and al, al // 0 pixel is transparent.
-    asm jnz skipload
-    asm mov al, es:[di]
-skipload:
-    asm stosb
-    asm dec dx
-    asm jnz pixcol
-
-    asm add di, 296
-    asm dec cx
-    asm jnz pixrow
-
-    asm pop es
-    asm pop ds
-}
-
-void video_start(void) {
-    asm mov ax, 0x13
-    asm int 0x10
-
-    load_pal();
-
-    memset(VGA, 0, 64000);
-}
-
-void WaitForVblank(void) {
-    while((inportb(0x3da) & 8) != 0);
-    while((inportb(0x3da) & 8) == 0);
+    mydrv->update_palette(pal);
 }
 
 void displaySheet(void) {
@@ -101,7 +41,7 @@ void displaySheet(void) {
             if (!spr)
                 continue;
 
-            drawSprite(spr, col, row);
+            mydrv->draw24(spr, col, row);
         }
     }
 }
@@ -126,13 +66,14 @@ void displayPlane(int plane) {
             which = (val & 64) ? 1 : 0;
             spr = sheets[which][val & 63];
 
-            drawSprite(spr, col, row);
+            mydrv->draw24(spr, col, row);
+            //drawSprite(spr, col, row);
         }
     }
 }
 
 void displayMap(void) {
-    memset(offscreen, 0, 64000);
+    mydrv->clear();
     displayPlane(0);
     displayPlane(1);
     displayPlane(2);
@@ -154,11 +95,6 @@ void textMap(void) {
         }
         printf("\n");
     }
-}
-
-void restore_video(void) {
-    asm mov ax, 3
-    asm int 0x10
 }
 
 void interrupt myPitTimer(void) {
@@ -193,8 +129,6 @@ int main() {
     int cur_screen = 0;
     char buf[20];
 
-    offscreen = malloc(64000);
-
     readGGC("data/elek1.ggs", 0);
     readGGC("data/elek2.ggs", 1);
     map_load("data/elek.ggc");
@@ -207,7 +141,8 @@ int main() {
 
     PIT_Setup();
     Input_Setup();
-    video_start();
+    mydrv->init();
+    load_pal();
     DbgCon_Init("data/BALD8X8.FNT");
     //displaySheet();
 
@@ -224,7 +159,7 @@ int main() {
 
         displayMap();
         DbgCon_Tick();
-        DbgCon_Draw(offscreen, game_seconds);
+        //DbgCon_Draw(offscreen, game_seconds);
 
         if (keyDown[0x4b]) {
             // left
@@ -245,18 +180,15 @@ int main() {
         }
 
         memset(keyDown, 0, 101);
-        WaitForVblank();
-        memcpy(VGA, offscreen, 64000);
+        mydrv->update();
     }
 
     Input_Shutdown();
-    restore_video();
+    mydrv->shutdown();
     map_free();
     free_sprites();
     DbgCon_Close();
     PIT_Close();
-
-    free(offscreen);
 
     return 0;
 }
