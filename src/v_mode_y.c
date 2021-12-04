@@ -10,7 +10,10 @@ static byte *VGA = (byte*)(0xa0000000l);
 // vid_ofs points to the *inactive* video page.
 static int vid_ofs = 0x4000;
 
-void init(void) {
+// 8x8 pixel font for debug display
+static byte *pixel_font = 0;
+
+static void init(void) {
     asm mov ax, 0x13
     asm int 0x10
 
@@ -40,12 +43,12 @@ void init(void) {
     outportb(CRTC_DATA, 0xe3);
 }
 
-void shutdown(void) {
+static void shutdown(void) {
     asm mov ax, 3
     asm int 0x10
 }
 
-void clear(void) {
+static void clear(void) {
     int plane;
     for (plane = 0; plane < 4; plane++) {
         // select the map mask register
@@ -58,7 +61,7 @@ void clear(void) {
     }
 }
 
-void update(void) {
+static void update(void) {
     // Set CRTC start address high
     outport(0x3d4, 0xc | vid_ofs);
     vid_ofs = 0x4000 - vid_ofs;
@@ -68,15 +71,45 @@ void update(void) {
     while((inportb(0x3da) & 8) == 0);
 }
 
-void set_fontface(byte *font) {
-    // not yet
+static void set_fontface(byte *font) {
+    pixel_font = font;
 }
 
-void type_msg(char *msg, int x, int y, byte color) {
-    // not yet
+static void type_msg(char *msg, int x, int y, byte color) {
+    int i;
+    int plane;
+    char *tstr;
+    byte *pix;
+    byte *start;
+
+    // foreach of 4 planes
+    for (plane = 0; plane < 4; plane++) {
+        // select the map mask register
+        outportb(SC_INDEX, SC_MAP_MASK);
+
+        // write 2^plane 
+        outportb(SC_DATA, 1 << plane);
+        
+        start = (VGA + vid_ofs + 80 *y + x/4);
+        tstr = msg;
+        // foreach char in the string
+        while (*tstr) {
+            pix = &pixel_font[*tstr * 8];
+            // foreach of 8 pixel rows
+            for (i = 0; i < 8; i++) {
+                if (pix[i] & (0x80 >> plane)) { *start     = color; }
+                if (pix[i] & (0x08 >> plane)) { *(start+1) = color; }
+                start += 80;
+            }
+            // rewind 8 rows, seek ahead 2 pixels
+            start -= 640;
+            start += 2;
+            tstr++;
+        }
+    }
 }
 
-void update_palette(color_t *pal) {
+static void update_palette(color_t *pal) {
     int i;
     outportb(0x3c8, 0);
 
@@ -87,7 +120,7 @@ void update_palette(color_t *pal) {
     }
 }
 
-void draw24(byte *src, int x, int y) {
+static void draw24(byte *src, int x, int y) {
     int i, j;
     int plane;
     // x is in 24x24 block coords. we need to divide by 4
