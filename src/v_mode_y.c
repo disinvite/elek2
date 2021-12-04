@@ -5,6 +5,8 @@
 
 #include "video.h"
 
+#define kMaxVidSrc 8
+
 static byte *VGA = (byte*)(0xa0000000l);
 
 // vid_ofs points to the *inactive* video page.
@@ -12,6 +14,15 @@ static int vid_ofs = 0x4000;
 
 // 8x8 pixel font for debug display
 static byte *pixel_font = 0;
+
+// pointer to first available block of VRAM.
+// TODO: I guess this fails as you swap out banks
+// because then you have fragmented memory.
+static unsigned int vram_buf_ptr = 0x8000;
+
+// video source, boolean to tell whether they are in VRAM or not
+static byte  buffer_is_vram[kMaxVidSrc];
+static byte *buffer_src[kMaxVidSrc][64];
 
 static void init(void) {
     asm mov ax, 0x13
@@ -44,8 +55,26 @@ static void init(void) {
 }
 
 static void shutdown(void) {
+    int i;
+    int j;
+
     asm mov ax, 3
     asm int 0x10
+
+    // free the sprites that we gatta free
+    /*
+    for (i = 0; i < kMaxVidSrc; i++) {
+        if (buffer_is_vram[i])
+            continue;
+        
+        for (j = 0; j < 64; j++) {
+            if (buffer_src[i][j]) {
+                free(buffer_src[i][j]);
+                buffer_src[i][j] = 0;
+            }
+        }
+    }
+    */
 }
 
 static void clear(void) {
@@ -59,6 +88,81 @@ static void clear(void) {
         
         memset(VGA + vid_ofs, 0, 16000);
     }
+}
+
+void deplane_sprites(byte **sprites, byte slot) {
+    int i;
+    int j;
+    int plane;
+    int used_sprite_idx;
+    byte *spr;
+
+    for (plane = 0; plane < 4; plane++) {
+        // Pack the sprites tightly in VRAM
+        used_sprite_idx = 0;
+
+        // select the map mask register
+        outportb(SC_INDEX, SC_MAP_MASK);
+
+        // write 2^plane 
+        outportb(SC_DATA, 1 << plane);
+
+        for (i = 0; i < 64; i++) {
+            spr = sprites[i];
+            if (!spr)
+                continue;
+
+            for (j = 0; j < 144; j++) {
+                *(VGA + vram_buf_ptr + 144 * used_sprite_idx + j) = *(spr + 4*j + plane);
+            }
+
+            used_sprite_idx++;
+        }
+    }
+
+    // Now set the pointers.
+    // Could do this in the first loop I guess
+    used_sprite_idx = 0;
+    for (i = 0; i < 64; i++) {
+        if (!sprites[i])
+            continue;
+
+        buffer_src[slot][i] = (byte*)(VGA + vram_buf_ptr + 144 * used_sprite_idx);
+        used_sprite_idx++;
+    }
+
+    // Seek vram pointer ahead.
+    vram_buf_ptr += 144 * used_sprite_idx;
+}
+
+// set used_vram to 1 if we were able to use it
+// non-plane graphics modes would set to 0 always.
+static int load_sprites(byte **sprites, byte slot, byte *used_vram) {
+    int i;
+    int used_sprites;
+    
+    // TODO: return error if slot in use?
+
+    // count how many sprites are in the sheet
+    // so we can tell if we have the vram available.
+    for (i = 0; i < 64; i++) {
+        if (sprites[i])
+            used_sprites++;
+    }
+    
+    // deplaned bytes. 144 bytes per sprite.
+    // make sure we did not have unsigned int rollover
+    if ((vram_buf_ptr + 144 * used_sprites) > 0x8000) {
+        deplane_sprites(sprites, slot);
+        *used_vram = 1;
+    } else {
+        // just copy the pointers over. they are already allocated.
+        memcpy(buffer_src[slot], sprites, 256);
+        *used_vram = 0;
+    }
+
+    buffer_is_vram[slot] = *used_vram;
+    return 0;
 }
 
 static void update(void) {
@@ -120,14 +224,64 @@ static void update_palette(color_t *pal) {
     }
 }
 
-static void draw24(byte *src, int x, int y) {
+static void draw_vram(byte slot, byte id, int x, int y) {
+    int i;
+    int bx;
+    byte *src;
+    byte *dst;
+
+    // deplane 24x24 coord. see comment below.
+    bx = x * 6;
+
+    src = buffer_src[slot][id];
+    dst = (VGA + vid_ofs + 80 * 24 * y + bx);
+
+    outportb(GC_INDEX, GC_MODE);
+    outportb(GC_DATA, (inportb(GC_DATA) & 0xfc) | 1);
+
+    // select the map mask register
+    outportb(SC_INDEX, SC_MAP_MASK);
+
+    // write to all 4 planes.
+    outportb(SC_DATA, 15);
+
+    for (i = 0; i < 24; i++) {
+        // just do the 6 copies manually for now.
+        // can't use memcpy for VRAM copy.
+        *dst++ = *src++;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        *dst++ = *src++;
+        dst += 74; // 80 bytes per scanline - 6 bytes just written
+    }
+
+    outportb(GC_INDEX, GC_MODE);
+    outportb(GC_DATA, inportb(GC_DATA) & 0xfc);
+}
+
+static void draw24(byte slot, byte id, int x, int y) {
     int i, j;
+    int bx;
     int plane;
+    byte *start;
+    
+    byte *src = buffer_src[slot][id];
+    if (!src)
+        return;
+
+    if (buffer_is_vram[slot]) {
+        draw_vram(slot, id, x, y);
+        return;
+    }
+
     // x is in 24x24 block coords. we need to divide by 4
     // to deplane the pixel coord.
     // this results in a multiply by 6.
-    int bx = x * 6;
-    byte *start = VGA + vid_ofs + 80 * 24 * y + bx;
+    bx = x * 6;
+
+    start = VGA + vid_ofs + 80 * 24 * y + bx;
 
     for (plane = 0; plane < 4; plane++) {
         // select the map mask register
@@ -150,6 +304,7 @@ video_drv_t mode_y_drv = {
     &shutdown,
     &clear,
     &update,
+    &load_sprites,
     &set_fontface,
     &type_msg,
     &update_palette,

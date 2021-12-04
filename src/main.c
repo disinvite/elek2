@@ -32,17 +32,10 @@ void load_pal(void) {
 void displaySheet(void) {
     int row;
     int col;
-    byte *spr;
-    byte **sheet;
 
-    sheet = getSpriteSlot(0);
     for (row = 0; row < 8; row++) {
         for (col = 0; col < 8; col++) {
-            spr = sheet[8 * row + col];
-            if (!spr)
-                continue;
-
-            mydrv->draw24(spr, col, row);
+            mydrv->draw24(0, 8*row + col, col, row);
         }
     }
 }
@@ -52,11 +45,6 @@ void displayPlane(int plane) {
     int col;
     int which;
     byte val;
-    byte *spr;
-    byte **sheets[2];
-
-    sheets[0] = getSpriteSlot(0);
-    sheets[1] = getSpriteSlot(1);
 
     for (row = 0; row < 8; row++) {
         for (col = 0; col < 13; col++) {
@@ -65,10 +53,7 @@ void displayPlane(int plane) {
                 continue;
 
             which = (val & 64) ? 1 : 0;
-            spr = sheets[which][val & 63];
-
-            mydrv->draw24(spr, col, row);
-            //drawSprite(spr, col, row);
+            mydrv->draw24(which, val & 63, col, row);
         }
     }
 }
@@ -129,6 +114,7 @@ int main() {
     int changed = 1;
     int cur_screen = 0;
     char buf[20];
+    byte used_vram;
 
     readGGC("data/elek1.ggs", 0);
     readGGC("data/elek2.ggs", 1);
@@ -146,6 +132,10 @@ int main() {
     load_pal();
     DbgCon_Init("data/BALD8X8.FNT", mydrv);
     //displaySheet();
+
+    // needs to happen after the video init so VRAM is ready.
+    mydrv->load_sprites(getSpriteSlot(0), 0, &used_vram);
+    mydrv->load_sprites(getSpriteSlot(1), 1, &used_vram);
 
     while (1) {
         if (keyHeld[0x1] || keyHeld[0x10])

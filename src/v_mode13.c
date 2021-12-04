@@ -9,6 +9,8 @@
 
 typedef unsigned char byte;
 
+#define kMaxVidSrc 8
+
 static byte old_video_mode; // TODO: use this I guess
 
 static byte *VGA = (byte*)(0xa0000000l);
@@ -16,6 +18,8 @@ static byte *offscreen;
 
 // 8x8 pixel font for debug display
 static byte *pixel_font = 0;
+
+static byte *buffer_src[kMaxVidSrc][64];
 
 static void init(void) {
     asm mov ax, 0x13
@@ -33,6 +37,13 @@ static void shutdown(void) {
 
 static void clear(void) {
     memset(offscreen, 0, 64000);
+}
+
+static int load_sprites(byte **sprites, byte slot, byte *used_vram) {
+    memcpy(buffer_src[slot], sprites, 256);
+    *used_vram = 0;
+
+    return 0;
 }
 
 static void update(void) {
@@ -92,9 +103,15 @@ static void type_msg(char *msg, int x, int y, byte color) {
     }
 }
 
-static void draw24(byte *src, int x, int y) {
+static void draw24(byte slot, byte id, int x, int y) {
     int i, j;
-    int start = 320 * 24 * y + 24 * x;
+    int start;
+    
+    byte *src = buffer_src[slot][id];
+    if (!src)
+        return;
+
+    start = 320 * 24 * y + 24 * x;
 
     asm push ds
     asm push es
@@ -128,6 +145,7 @@ video_drv_t mode13_drv = {
     &shutdown,
     &clear,
     &update,
+    &load_sprites,
     &set_fontface,
     &type_msg,
     &update_palette,
