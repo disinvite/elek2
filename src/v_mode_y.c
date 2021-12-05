@@ -139,26 +139,50 @@ void deplane_sprites(byte **sprites, byte slot) {
 // non-plane graphics modes would set to 0 always.
 static int load_sprites(byte **sprites, byte slot, byte *used_vram) {
     int i;
+    int x, y, plane;
     int used_sprites;
-    
+    byte *spr;
+    byte tmp[576];
+
     // TODO: return error if slot in use?
 
+    /*
     // count how many sprites are in the sheet
     // so we can tell if we have the vram available.
     for (i = 0; i < 64; i++) {
         if (sprites[i])
             used_sprites++;
     }
+    */
     
+    /*
     // deplaned bytes. 144 bytes per sprite.
     // make sure we did not have unsigned int rollover
     if ((vram_buf_ptr + 144 * used_sprites) > 0x8000) {
         deplane_sprites(sprites, slot);
         *used_vram = 1;
-    } else {
-        // just copy the pointers over. they are already allocated.
-        memcpy(buffer_src[slot], sprites, 256);
-        *used_vram = 0;
+    }
+    */
+
+    // just copy the pointers over. they are already allocated.
+    memcpy(buffer_src[slot], sprites, 256);
+    *used_vram = 0;
+
+    // now we rotate the sprites to be column order first, by plane number
+    for (i = 0; i < 64; i++) {
+        spr = sprites[i];
+        if (!spr)
+            continue;
+
+        memcpy(&tmp, spr, 576);
+
+        for (plane = 0; plane < 4; plane++) {
+            for (x = 0; x < 6; x++) {
+                for (y = 0; y < 24; y++) {
+                    *spr++ = tmp[24*y + 4*x + plane];
+                }
+            }
+        }
     }
 
     buffer_is_vram[slot] = *used_vram;
@@ -266,6 +290,7 @@ static void draw24(byte slot, byte id, int x, int y) {
     int bx;
     int plane;
     byte *start;
+    byte val;
     
     byte *src = buffer_src[slot][id];
     if (!src)
@@ -283,20 +308,54 @@ static void draw24(byte slot, byte id, int x, int y) {
 
     start = VGA + vid_ofs + 80 * 24 * y + bx;
 
-    for (plane = 0; plane < 4; plane++) {
-        // select the map mask register
-        outportb(SC_INDEX, SC_MAP_MASK);
+    // AH    -- plane mask
+    // DS:SI -- source sprite, ordered by column and by plane
+    // ES:DI -- VGA already at correct position
+    // CH -- countdown of cols to write
+    // CL -- countdown of rows to write
 
-        // write 2^plane 
-        outportb(SC_DATA, 1 << plane);
+    asm push ds
+    asm push si
+    asm push di
 
-        // 24 divided by 4 = 6
-        for (i = 0; i < 6; i++) {
-            for (j = 0; j < 24; j++) {
-                start[80 * j + i] = src[24 * j + 4*i + plane];
-            }
-        }
-    }
+    asm les di, [start]
+    asm lds si, [src]
+
+    asm mov ah, 1
+plane_loop:
+    asm mov dx, 0x3c4 // SC_INDEX
+    asm mov al, 2 // SC_MAP_MASK
+    asm out dx, ax
+
+    asm mov ch, 6
+col_loop:
+
+        asm mov cl, 24
+    row_loop:
+            asm lodsb
+            asm or al, al
+            asm jz skip_write
+            asm stosb
+            asm dec di
+        skip_write:
+            asm add di, 80
+            asm dec cl
+            asm jnz row_loop
+
+        asm sub di, 1919 // (80*24 - 1)
+
+        asm dec ch
+        asm jnz col_loop
+
+    asm sub di, 6
+
+    asm shl ah, 1
+    asm and ah, 15
+    asm jnz plane_loop
+
+    asm pop di
+    asm pop si
+    asm pop ds
 }
 
 video_drv_t mode_y_drv = {
