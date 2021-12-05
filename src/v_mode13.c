@@ -140,6 +140,23 @@ skipload:
     asm pop ds
 }
 
+static void dbg_draw_solid(byte *map) {
+    int i;
+    int j;
+    int t;
+
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 13; j++) {
+            if (map[13 * i + j]) {
+                // draw 8x8 box on top of each solid tile
+                for (t = 0; t < 8; t++) {
+                    memset(offscreen + (24 * 320 * i) + (320 * t) + (24 * j), 10, 8);
+                }
+            }
+        }
+    }
+}
+
 video_drv_t mode13_drv = {
     &init,
     &shutdown,
@@ -149,5 +166,6 @@ video_drv_t mode13_drv = {
     &set_fontface,
     &type_msg,
     &update_palette,
-    &draw24
+    &draw24,
+    &dbg_draw_solid
 };

@@ -1,6 +1,8 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
+#define kMaxSpriteSlots 8
+
 typedef unsigned char byte;
 
 typedef struct gge_sprite_s {
@@ -15,6 +17,8 @@ typedef struct gge_sprite_s {
 
 byte **getSpriteSlot(int slot);
 void free_sprites(void);
-void readGGC(char *filename, int slot);
+void readGGS(char *filename, int slot);
+
+extern byte *Sprite_Status[kMaxSpriteSlots][64];
 
 #endif

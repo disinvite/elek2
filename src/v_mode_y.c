@@ -358,6 +358,10 @@ col_loop:
     asm pop ds
 }
 
+static void dbg_draw_solid(byte *map) {
+    
+}
+
 video_drv_t mode_y_drv = {
     &init,
     &shutdown,
@@ -367,6 +371,7 @@ video_drv_t mode_y_drv = {
     &set_fontface,
     &type_msg,
     &update_palette,
-    &draw24
+    &draw24,
+    &dbg_draw_solid
 };
 

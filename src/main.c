@@ -14,11 +14,12 @@
 
 typedef unsigned char byte;
 
-video_drv_t *mydrv = &mode_y_drv;
+video_drv_t *mydrv = &mode13_drv;
 
 void interrupt (*oldPitFunction)(void);
 int game_tics = 0;
 int game_seconds = 0;
+byte collide_flag = 0;
 
 void load_pal(void) {
     color_t pal[256];
@@ -116,8 +117,8 @@ int main() {
     char buf[20];
     byte used_vram;
 
-    readGGC("data/elek1.ggs", 0);
-    readGGC("data/elek2.ggs", 1);
+    readGGS("data/elek1.ggs", 0);
+    readGGS("data/elek2.ggs", 1);
     map_load("data/elek.ggc");
     /*
     textMap();
@@ -152,6 +153,9 @@ int main() {
         DbgCon_Tick();
         DbgCon_Draw(game_seconds);
 
+        if (collide_flag)
+            mydrv->dbg_draw_solid(collision);
+
         if (keyDown[0x4b]) {
             // left
             cur_screen = (cur_screen & 240) | ((cur_screen - 1) & 15);
@@ -169,6 +173,10 @@ int main() {
             cur_screen = (cur_screen + 16) & 255;
             changed = 1;
         }
+
+        // C key
+        if (keyDown[0x2e])
+            collide_flag ^= 1;
 
         memset(keyDown, 0, 101);
         mydrv->update();

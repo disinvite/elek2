@@ -4,10 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "sprite.h"
+
 static byte room_exists[256];
 static int plane_ofs[256][4];
 
 byte current_room[4][8][13];
+byte collision[8][13];
 
 static byte *rawmap;
 
@@ -52,6 +55,29 @@ void map_load(char *filename) {
     fread(rawmap, remainder, 1, f);
 
     fclose(f);
+}
+
+static void calc_solid(void) {
+    int i;
+    int j;
+    int plane;
+    byte val;
+    byte status;
+    //memset(collision, 0, sizeof(collision));
+
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 13; j++) {
+            for (plane = 3; plane >= 0; plane--) {
+                val = current_room[plane][i][j];
+                status = Sprite_Status[(val >> 6) & 1][val & 63][0];
+                collision[i][j] = status & 0x80;
+                
+                if (status & 0x80)
+                    break;
+            }
+        }
+    }
+
 }
 
 void map_decode(int room) {
@@ -107,6 +133,8 @@ void map_decode(int room) {
             memcpy(current_room[plane], buf, 104);
         }
     }
+
+    calc_solid();
 }
 
 void map_free(void) {
