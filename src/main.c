@@ -41,30 +41,12 @@ void displaySheet(void) {
     }
 }
 
-void displayPlane(int plane) {
-    int row;
-    int col;
-    int which;
-    byte val;
-
-    for (row = 0; row < 8; row++) {
-        for (col = 0; col < 13; col++) {
-            val = current_room[plane][row][col];
-            if (!val)
-                continue;
-
-            which = (val & 64) ? 1 : 0;
-            mydrv->draw24(which, val & 63, col, row);
-        }
-    }
-}
-
 void displayMap(void) {
     mydrv->clear();
-    displayPlane(0);
-    displayPlane(1);
-    displayPlane(2);
-    displayPlane(3);
+    mydrv->draw_plane(&current_room[0], 0);
+    mydrv->draw_plane(&current_room[1], 0);
+    mydrv->draw_plane(&current_room[2], 0);
+    mydrv->draw_plane(&current_room[3], 0);
 }
 
 void textMap(void) {

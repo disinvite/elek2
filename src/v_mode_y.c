@@ -362,6 +362,10 @@ static void dbg_draw_solid(byte *map) {
     
 }
 
+static void draw_plane(byte *plane, byte fast) {
+    
+}
+
 video_drv_t mode_y_drv = {
     &init,
     &shutdown,
@@ -372,6 +376,7 @@ video_drv_t mode_y_drv = {
     &type_msg,
     &update_palette,
     &draw24,
-    &dbg_draw_solid
+    &dbg_draw_solid,
+    &draw_plane
 };
 

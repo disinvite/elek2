@@ -14,6 +14,10 @@ typedef unsigned char byte;
 static byte old_video_mode; // TODO: use this I guess
 
 static byte *VGA = (byte*)(0xa0000000l);
+
+// Use segment aligned pointer for offscreen buffer.
+// This is so we can assume that ES:DI on offscreen starts at offset 0.
+static byte *offscreen_naked;
 static byte *offscreen;
 
 // 8x8 pixel font for debug display
@@ -25,14 +29,15 @@ static void init(void) {
     asm mov ax, 0x13
     asm int 0x10
 
-    offscreen = malloc(64000);
+    offscreen_naked = malloc(64016);
+    offscreen = MK_FP(FP_SEG(offscreen_naked) + 1, 0);
 }
 
 static void shutdown(void) {
     asm mov ax, 3
     asm int 0x10
 
-    free(offscreen);
+    free(offscreen_naked);
 }
 
 static void clear(void) {
@@ -157,6 +162,26 @@ static void dbg_draw_solid(byte *map) {
     }
 }
 
+// fast = ignore transparency, good for layer 0.
+static void draw_plane(byte *plane, byte fast) {
+    int i;
+    int j;
+    int val;
+    int which;
+
+    // TODO: slow version
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 13; j++) {
+            val = plane[13 * i + j];
+            if (!val)
+                continue;
+
+            which = (val & 64) ? 1 : 0;
+            draw24(which, val & 63, j, i);
+        }
+    }
+}
+
 video_drv_t mode13_drv = {
     &init,
     &shutdown,
@@ -167,5 +192,6 @@ video_drv_t mode13_drv = {
     &type_msg,
     &update_palette,
     &draw24,
-    &dbg_draw_solid
+    &dbg_draw_solid,
+    &draw_plane
 };

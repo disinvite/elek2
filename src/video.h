@@ -18,9 +18,7 @@ typedef struct video_drv_s {
     void (*update_palette)(color_t *pal);
     void (*draw24)(byte slot, byte id, int x, int y);
     void (*dbg_draw_solid)(byte *map);
+    void (*draw_plane)(byte *plane, byte fast);
 } video_drv_t;
-
-// int load_sprites(byte **sprites, byte slot, byte *used_vram)
-// void (*draw24)(byte slot, byte id, int x, int y)
 
 #endif
