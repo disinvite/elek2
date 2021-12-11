@@ -1,4 +1,5 @@
 data/
+ignore/
 src/data/
 *.exe
 *.obj
