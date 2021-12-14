@@ -11,8 +11,8 @@ objs =  \
  sprite.obj \
  input.obj \
  dbgcon.obj \
- v_mode13.obj \
- v_mode_y.obj
+ video\\v_mode13.obj \
+ video\\v_mode_y.obj
 
 elek2: $(objs)
   TLINK $(LDFLAGS) @&&!
@@ -20,7 +20,7 @@ C0$(MODEL).obj $**
 !,$@,$@,CL
 
 .c.obj:
-  BCC $(CCFLAGS) -L$(DIR_LIB) -I$(DIR_HEADERS) -c $<
+  BCC $(CCFLAGS) -L$(DIR_LIB) -I$(DIR_HEADERS) -c -o$*.obj $<
 
 .asm.obj:
   TASM $(TASMFLAGS) $<

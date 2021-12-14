@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "video.h"
+#include "video/video.h"
 
 typedef struct dbg_entry_s {
     char *msg;

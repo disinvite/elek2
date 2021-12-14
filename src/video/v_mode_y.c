@@ -1,9 +1,9 @@
-#include "v_mode_y.h"
+#include "video/v_mode_y.h"
 
 #include <dos.h>
 #include <mem.h>
 
-#include "video.h"
+#include "video/video.h"
 
 #define kMaxVidSrc 8
 

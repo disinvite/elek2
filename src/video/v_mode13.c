@@ -1,11 +1,11 @@
-#include "v_mode13.h"
+#include "video/v_mode13.h"
 
 #include <dos.h>
 #include <mem.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "video.h"
+#include "video/video.h"
 
 typedef unsigned char byte;
 

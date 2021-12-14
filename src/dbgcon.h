@@ -1,7 +1,7 @@
 #ifndef FONT8_H
 #define FONT8_H
 
-#include "video.h"
+#include "video/video.h"
 
 typedef unsigned char byte;
 

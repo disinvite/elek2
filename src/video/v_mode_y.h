@@ -1,7 +1,7 @@
 #ifndef V_MODE_Y_H
 #define V_MODE_Y_H
 
-#include "video.h"
+#include "video/video.h"
 
 // VGA sequence controller
 #define SC_INDEX            0x3c4

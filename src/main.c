@@ -8,9 +8,9 @@
 #include "input.h"
 #include "mapfile.h"
 #include "sprite.h"
-#include "video.h"
-#include "v_mode13.h"
-#include "v_mode_y.h"
+#include "video/video.h"
+#include "video/v_mode13.h"
+#include "video/v_mode_y.h"
 
 typedef unsigned char byte;
 
