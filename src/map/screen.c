@@ -53,6 +53,36 @@ void Layer_vtoh(byte *src) {
 }
 
 void Layer_Unpack(byte *src, byte *dst) {
+    int i;
+    byte b;
+    byte rpt;
+    byte vertical;
+
+    // Unpack horizontal.
+    // Check whether we need to rotate when we're done.
+    vertical = (*src++) & 128;
+    i = 0;
+
+    while (i < 104) {
+        b = *src++;
+        if (b & 128) {
+            // plus one, very important.
+            rpt = *src++ + 1;
+
+            // don't write too much
+            if (rpt + i > 104)
+                rpt = 104 - i;
+
+            memset(&dst[i], b & 127, rpt);
+            i += rpt;
+        } else {
+            dst[i] = b & 127;
+            i++;
+        }
+    }
+
+    if (vertical)
+        Layer_vtoh(dst);
 }
 
 int Layer_Pack(byte *src, byte *dst) {
