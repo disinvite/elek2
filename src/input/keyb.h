@@ -1,7 +1,7 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef INPUT_KEYB_H
+#define INPUT_KEYB_H
 
-typedef unsigned char byte;
+#include "common/types.h"
 
 extern byte keyDown[101];
 extern byte keyHeld[101];

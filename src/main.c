@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "dbgcon.h"
-#include "input.h"
+#include "input/keyb.h"
 #include "mapfile.h"
 #include "sprite.h"
 #include "video/video.h"

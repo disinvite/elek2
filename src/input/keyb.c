@@ -1,11 +1,8 @@
-#include "input.h"
+#include "common/types.h"
+#include "input/keyb.h"
 
 #include <dos.h>
 #include <stdlib.h>
-
-typedef enum {false=0, true} bool;
-
-typedef unsigned char byte;
 
 bool input_setup = false;
 void interrupt (*OldKeybIntVec)(void);

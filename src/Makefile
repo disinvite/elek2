@@ -9,10 +9,18 @@ objs =  \
  main.obj \
  mapfile.obj \
  sprite.obj \
- input.obj \
+ input\\keyb.obj \
  dbgcon.obj \
  video\\v_mode13.obj \
  video\\v_mode_y.obj
+
+all: elek2
+
+clean:
+		del input\\*.obj
+		del map\\*.obj
+		del video\\*.obj
+		del *.obj
 
 elek2: $(objs)
   TLINK $(LDFLAGS) @&&!
