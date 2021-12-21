@@ -10,6 +10,7 @@ objs =  \
  mapfile.obj \
  sprite.obj \
  input\\keyb.obj \
+ input\\timer.obj \
  dbgcon.obj \
  video\\v_mode13.obj \
  video\\v_mode_y.obj
