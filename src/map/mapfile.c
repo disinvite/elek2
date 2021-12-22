@@ -87,7 +87,7 @@ void MapPacked_LoadRoom(map_packed_t *mapfile, int id, layer_ptr_t *layers) {
 
     if (!mapfile->hdr.roomExists[id]) {
         // No room here. All pointers to zero and we're done
-        memset(layers, sizeof(*layers), 0);
+        memset(layers, 0, sizeof(*layers));
         return;
     }
 
