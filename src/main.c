@@ -65,6 +65,13 @@ void changeRoom(int id) {
     }
 }
 
+void undraw_debug_region(void) {
+    mydrv->draw_region(&current_room[0], 0, 13, 0, 3, 0);
+    mydrv->draw_region(&current_room[1], 0, 13, 0, 3, 0);
+    mydrv->draw_region(&current_room[2], 0, 13, 0, 3, 0);
+    mydrv->draw_region(&current_room[3], 0, 13, 0, 3, 0);
+}
+
 int main() {
     int changed = 1;
     int cur_screen = 0;
@@ -96,11 +103,14 @@ int main() {
             sprintf(buf, "screen %02x", cur_screen);
             DbgCon_Insert(buf);
             changed = 0;
+
+            displayMap();
         }
 
-        displayMap();
-        DbgCon_Tick();
-        DbgCon_Draw(game_seconds);
+        if (DbgCon_Tick(game_seconds)) {
+            undraw_debug_region();
+        }
+        DbgCon_Draw();
 
         //if (collide_flag)
             //mydrv->dbg_draw_solid(collision);

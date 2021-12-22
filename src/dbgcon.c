@@ -1,3 +1,4 @@
+#include "common/types.h"
 #include "dbgcon.h"
 
 #include <stdio.h>
@@ -27,6 +28,8 @@ static byte dbg_setup = 0;
 static int n_called = 0;
 static int stored_secs;
 static char fpsbuf[4];
+
+static bool dbg_redraw = false;
 
 void DbgCon_Init(char *filename, video_drv_t *_drv) {
     int i;
@@ -77,11 +80,12 @@ void DbgCon_Insert(char *msg) {
         dStart->tics = 0;
         dStart = dStart->next;
     }
+
+    dbg_redraw = true;
 }
 
-void DbgCon_Draw(int secs) {
+void DbgCon_Draw(void) {
     int i;
-    char flipflop[2];
 
     dbg_entry_t *t = dStart;
     for (i = 0; i < kDbgMaxSize; i++) {
@@ -92,27 +96,33 @@ void DbgCon_Draw(int secs) {
         t = t->next;
     }
 
+    mydrv->type_msg(fpsbuf, 281, 11, 0);
+    mydrv->type_msg(fpsbuf, 280, 10, 4);
+
+    dbg_redraw = false;
+}
+
+int DbgCon_Tick(int secs) {
+    // fps counter math
     n_called++;
     if (stored_secs != secs) {
+        // TODO: eliminate sprintf.
         sprintf(fpsbuf, "%02d", n_called);
         stored_secs = secs;
         n_called = 0;
+        dbg_redraw = true;
     }
 
-    flipflop[0] = (n_called & 31) ? '.' : ' ';
+    // flip flop, should draw every frame.
+    mydrv->type_msg(".", 312, 10, (n_called & 31) ? 4 : 0);
 
-    mydrv->type_msg(flipflop, 313, 11, 0);
-    mydrv->type_msg(flipflop, 312, 10, 4);
-
-    mydrv->type_msg(fpsbuf, 281, 11, 0);
-    mydrv->type_msg(fpsbuf, 280, 10, 4);
-}
-
-void DbgCon_Tick(void) {
     dStart->tics--;
     if (dStart->tics == 0) {
         free(dStart->msg);
         dStart->msg = 0;
         dStart = dStart->next;
+        dbg_redraw = true;
     }
+
+    return dbg_redraw;
 }
