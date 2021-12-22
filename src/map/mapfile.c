@@ -83,6 +83,8 @@ void MapPacked_FreeData(map_packed_t *mapfile) {
 }
 
 void MapPacked_LoadRoom(map_packed_t *mapfile, int id, layer_ptr_t *layers) {
+    int i;
+
     if (!mapfile->hdr.roomExists[id]) {
         // No room here. All pointers to zero and we're done
         memset(layers, sizeof(*layers), 0);
@@ -91,16 +93,11 @@ void MapPacked_LoadRoom(map_packed_t *mapfile, int id, layer_ptr_t *layers) {
 
     // TODO: 2048 base offset assumes there's nothing in the future section
 
-    if (mapfile->offsets[id][0])
-        layers->layer[0] = mapfile->rawdata + mapfile->offsets[id][0] - 2048;
-
-    if (mapfile->offsets[id][1])
-        layers->layer[1] = mapfile->rawdata + mapfile->offsets[id][1] - 2048;
-
-    if (mapfile->offsets[id][2])
-        layers->layer[2] = mapfile->rawdata + mapfile->offsets[id][2] - 2048;
-
-    if (mapfile->offsets[id][3])
-        layers->layer[3] = mapfile->rawdata + mapfile->offsets[id][3] - 2048;
+    for (i = 0; i < 4; i++) {
+        if (mapfile->offsets[id][i])
+            layers->layer[i] = mapfile->rawdata + mapfile->offsets[id][i] - 2048;
+        else
+            layers->layer[i] = 0;
+    }
 }
 

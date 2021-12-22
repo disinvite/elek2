@@ -1,4 +1,5 @@
-#include <conio.h>
+#include "common/types.h"
+
 #include <dos.h>
 #include <mem.h>
 #include <stdio.h>
@@ -7,17 +8,21 @@
 #include "dbgcon.h"
 #include "input/keyb.h"
 #include "input/timer.h"
-#include "mapfile.h"
+#include "map/mapfile.h"
+#include "map/screen.h"
 #include "sprite.h"
 #include "video/video.h"
 #include "video/v_mode13.h"
 #include "video/v_mode_y.h"
 
-typedef unsigned char byte;
-
 video_drv_t *mydrv = &mode13_drv;
 
 byte collide_flag = 0;
+
+// map stuff.
+map_packed_t mapfile;
+layer_ptr_t layers;
+byte current_room[4][8][13];
 
 void load_pal(void) {
     color_t pal[256];
@@ -47,20 +52,16 @@ void displayMap(void) {
     mydrv->draw_plane(&current_room[3], 0);
 }
 
-void textMap(void) {
-    int row;
-    int col;
-    byte val;
-
-    for (row = 0; row < 8; row++) {
-        for (col = 0; col < 13; col++) {
-            val = current_room[0][row][col];
-            if (val)
-                printf("%02x ", val);
-            else
-                printf(".. ");
-        }
-        printf("\n");
+void changeRoom(int id) {
+    int i;
+    
+    MapPacked_LoadRoom(&mapfile, id, &layers);
+    
+    for (i = 0; i < 4; i++) {
+        if (layers.layer[i])
+            Layer_Unpack(layers.layer[i], current_room[i]);
+        else
+            memset(current_room[i], 0, 104);
     }
 }
 
@@ -72,13 +73,7 @@ int main() {
 
     readGGS("data/elek1.ggs", 0);
     readGGS("data/elek2.ggs", 1);
-    map_load("data/elek.ggc");
-    /*
-    textMap();
-
-    while (!kbhit());
-    getch();
-    */
+    MapPacked_ReadFromFile(&mapfile, "data/elek.ggc");
 
     PIT_Setup();
     Input_Setup();
@@ -96,7 +91,8 @@ int main() {
             break;
 
         if (changed) {
-            map_decode(cur_screen);
+            changeRoom(cur_screen);
+            //map_decode(cur_screen);
             sprintf(buf, "screen %02x", cur_screen);
             DbgCon_Insert(buf);
             changed = 0;
@@ -106,8 +102,8 @@ int main() {
         DbgCon_Tick();
         DbgCon_Draw(game_seconds);
 
-        if (collide_flag)
-            mydrv->dbg_draw_solid(collision);
+        //if (collide_flag)
+            //mydrv->dbg_draw_solid(collision);
 
         if (keyDown[0x4b]) {
             // left
@@ -137,7 +133,7 @@ int main() {
 
     Input_Shutdown();
     mydrv->shutdown();
-    map_free();
+    MapPacked_FreeData(&mapfile);
     free_sprites();
     DbgCon_Close();
     PIT_Close();

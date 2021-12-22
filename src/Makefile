@@ -7,7 +7,8 @@ TASMFLAGS = /w2 /ml /o
 
 objs =  \
  main.obj \
- mapfile.obj \
+ map\\mapfile.obj \
+ map\\screen.obj \
  sprite.obj \
  input\\keyb.obj \
  input\\timer.obj \
