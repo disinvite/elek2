@@ -182,6 +182,26 @@ static void draw_plane(byte *plane, byte fast) {
     }
 }
 
+// fast = ignore transparency, good for layer 0.
+static void draw_region(byte *plane, int x0, int x1, int y0, int y1, byte fast) {
+    int i;
+    int j;
+    int val;
+    int which;
+
+    // TODO: slow version
+    for (i = y0; i < y1; i++) {
+        for (j = x0; j < x1; j++) {
+            val = plane[13 * i + j];
+            if (!val)
+                continue;
+
+            which = (val & 64) ? 1 : 0;
+            draw24(which, val & 63, j, i);
+        }
+    }
+}
+
 video_drv_t mode13_drv = {
     &init,
     &shutdown,
@@ -193,5 +213,6 @@ video_drv_t mode13_drv = {
     &update_palette,
     &draw24,
     &dbg_draw_solid,
-    &draw_plane
+    &draw_plane,
+    &draw_region
 };

@@ -366,6 +366,10 @@ static void draw_plane(byte *plane, byte fast) {
     
 }
 
+static void draw_region(byte *plane, int x0, int x1, int y0, int y1, byte fast) {
+
+}
+
 video_drv_t mode_y_drv = {
     &init,
     &shutdown,
@@ -377,6 +381,7 @@ video_drv_t mode_y_drv = {
     &update_palette,
     &draw24,
     &dbg_draw_solid,
-    &draw_plane
+    &draw_plane,
+    &draw_region
 };
 
