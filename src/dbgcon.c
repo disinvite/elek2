@@ -86,19 +86,32 @@ void DbgCon_Insert(char *msg) {
 
 void DbgCon_Draw(void) {
     int i;
-
+    int maxx, maxy;
+    int tmax;
     dbg_entry_t *t = dStart;
+
+    maxx = 0;
     for (i = 0; i < kDbgMaxSize; i++) {
         if (t == dEnd)
             break;
         mydrv->type_msg(t->msg, 11, 11 + 10*i, 0);
         mydrv->type_msg(t->msg, 10, 10 + 10*i, 2);
+        
+        tmax = 11 + strlen(t->msg) * 8;
+        if (tmax > maxx)
+            maxx = tmax;
+
         t = t->next;
     }
+    maxy = (10*i) + 9;
 
+    // FPS counter and bounding box
     mydrv->type_msg(fpsbuf, 281, 11, 0);
     mydrv->type_msg(fpsbuf, 280, 10, 4);
+    DRect_Add(280, 10, 297, 19);
 
+    // Bounding box of console we just drew.
+    DRect_Add(10, 10, maxx, maxy);
     dbg_redraw = false;
 }
 
@@ -124,5 +137,5 @@ int DbgCon_Tick(int secs) {
         dbg_redraw = true;
     }
 
-    return dbg_redraw;
+    return true;
 }

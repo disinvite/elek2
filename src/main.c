@@ -19,6 +19,9 @@ video_drv_t *mydrv = &mode13_drv;
 
 byte collide_flag = 0;
 
+bool screen_redraw = true;
+bool dbgcon_redraw = true;
+
 // map stuff.
 map_packed_t mapfile;
 layer_ptr_t layers;
@@ -50,6 +53,9 @@ void displayMap(void) {
     mydrv->draw_plane(&current_room[1], 0);
     mydrv->draw_plane(&current_room[2], 0);
     mydrv->draw_plane(&current_room[3], 0);
+
+    // Save off the existing screen data here.
+    mydrv->copy_backbuf();
 }
 
 void changeRoom(int id) {
@@ -94,6 +100,8 @@ int main() {
     mydrv->load_sprites(getSpriteSlot(1), 1, &used_vram);
 
     while (1) {
+        screen_redraw = false;
+
         if (keyHeld[0x1] || keyHeld[0x10])
             break;
 
@@ -103,14 +111,21 @@ int main() {
             sprintf(buf, "screen %02x", cur_screen);
             DbgCon_Insert(buf);
             changed = 0;
+            screen_redraw = true;
+            dirtyRectWritePtr = 0;
+        }
 
+        if (dirtyRectWritePtr > 0) {
+            mydrv->drect();
+        }
+
+        dbgcon_redraw = DbgCon_Tick(game_seconds);
+
+        if (screen_redraw)
             displayMap();
-        }
 
-        if (DbgCon_Tick(game_seconds)) {
-            undraw_debug_region();
-        }
-        DbgCon_Draw();
+        if (dbgcon_redraw)
+            DbgCon_Draw();
 
         //if (collide_flag)
             //mydrv->dbg_draw_solid(collision);

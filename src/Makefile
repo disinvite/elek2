@@ -13,6 +13,7 @@ objs =  \
  input\\keyb.obj \
  input\\timer.obj \
  dbgcon.obj \
+ video\\video.obj \
  video\\v_mode13.obj \
  video\\v_mode_y.obj
 

@@ -20,6 +20,10 @@ static byte *VGA = (byte*)(0xa0000000l);
 static byte *offscreen_naked;
 static byte *offscreen;
 
+// For dirty rectangles
+static byte *backbuf_naked;
+static byte *backbuf;
+
 // 8x8 pixel font for debug display
 static byte *pixel_font = 0;
 
@@ -31,6 +35,9 @@ static void init(void) {
 
     offscreen_naked = malloc(64016);
     offscreen = MK_FP(FP_SEG(offscreen_naked) + 1, 0);
+
+    backbuf_naked = malloc(64016);
+    backbuf = MK_FP(FP_SEG(backbuf_naked) + 1, 0);
 }
 
 static void shutdown(void) {
@@ -38,6 +45,7 @@ static void shutdown(void) {
     asm int 0x10
 
     free(offscreen_naked);
+    free(backbuf);
 }
 
 static void clear(void) {
@@ -202,6 +210,34 @@ static void draw_region(byte *plane, int x0, int x1, int y0, int y1, byte fast) 
     }
 }
 
+static void copy_backbuf(void) {
+    memcpy(backbuf, offscreen, 64000);
+}
+
+static void drect(void) {
+    int i;
+    int row;
+    int len;
+    rect_t *t;
+    byte *src;
+    byte *dst;
+
+    for (i = 0; i < dirtyRectWritePtr; i++) {
+        t = &dirtyRectangles[i];
+        src = backbuf   + 320 * t->y0 + t->x0;
+        dst = offscreen + 320 * t->y0 + t->x0;
+
+        for (row = t->y0; row < t->y1; row++) {
+            len = t->x1 - t->x0;
+            memcpy(dst, src, len);
+            src += 320;
+            dst += 320;
+        }
+    }
+
+    dirtyRectWritePtr = 0;
+}
+
 video_drv_t mode13_drv = {
     &init,
     &shutdown,
@@ -214,5 +250,7 @@ video_drv_t mode13_drv = {
     &draw24,
     &dbg_draw_solid,
     &draw_plane,
-    &draw_region
+    &draw_region,
+    &copy_backbuf,
+    &drect
 };

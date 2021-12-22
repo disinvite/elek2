@@ -370,6 +370,14 @@ static void draw_region(byte *plane, int x0, int x1, int y0, int y1, byte fast) 
 
 }
 
+static void copy_backbuf(void) {
+
+}
+
+static void drect(void) {
+    
+}
+
 video_drv_t mode_y_drv = {
     &init,
     &shutdown,
@@ -382,6 +390,8 @@ video_drv_t mode_y_drv = {
     &draw24,
     &dbg_draw_solid,
     &draw_plane,
-    &draw_region
+    &draw_region,
+    &copy_backbuf,
+    &drect
 };
 
