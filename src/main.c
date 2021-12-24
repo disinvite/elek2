@@ -25,7 +25,6 @@ bool dbgcon_redraw = true;
 // map stuff.
 map_packed_t mapfile;
 layer_ptr_t layers;
-byte current_room[4][8][13];
 
 void load_pal(void) {
     color_t pal[256];
@@ -67,7 +66,7 @@ void changeRoom(int id) {
         if (layers.layer[i])
             Layer_Unpack(layers.layer[i], current_room[i]);
         else
-            memset(current_room[i], 0, 104);
+            memset(current_room[i], 0, kRoomSize);
     }
 }
 

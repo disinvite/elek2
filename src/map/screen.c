@@ -3,10 +3,10 @@
 
 #include <mem.h>
 
-static byte layer_temp[104];
+static byte layer_temp[kRoomSize];
 
 // [r*13 + c for c in range(13) for r in range(8)]
-static byte kLutHV[104] = {
+static byte kLutHV[kRoomSize] = {
     0,  13, 26, 39, 52, 65, 78, 91,
     1,  14, 27, 40, 53, 66, 79, 92,
     2,  15, 28, 41, 54, 67, 80, 93,
@@ -23,7 +23,7 @@ static byte kLutHV[104] = {
 };
 
 // [r*8 + c for c in range(8) for r in range(13)]  
-static byte kLutVH[104] = {
+static byte kLutVH[kRoomSize] = {
     0,  8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96,
     1,  9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97,
     2, 10, 18, 26, 34, 42, 50, 58, 66, 74, 82, 90, 98,
@@ -34,22 +34,25 @@ static byte kLutVH[104] = {
     7, 15, 23, 31, 39, 47, 55, 63, 71, 79, 87, 95, 103
 };
 
+// Room data for all users of the API
+byte current_room[4][kRoomSize];
+
 void Layer_htov(byte *src) {
     int i;
     
-    for (i = 0; i < 104; i++)
+    for (i = 0; i < kRoomSize; i++)
         layer_temp[i] = src[kLutHV[i]];
 
-    memcpy(src, layer_temp, 104);
+    memcpy(src, layer_temp, kRoomSize);
 }
 
 void Layer_vtoh(byte *src) {
     int i;
     
-    for (i = 0; i < 104; i++)
+    for (i = 0; i < kRoomSize; i++)
         layer_temp[i] = src[kLutVH[i]];
 
-    memcpy(src, layer_temp, 104);
+    memcpy(src, layer_temp, kRoomSize);
 }
 
 void Layer_Unpack(byte *src, byte *dst) {
@@ -63,15 +66,15 @@ void Layer_Unpack(byte *src, byte *dst) {
     vertical = (*src++) & 128;
     i = 0;
 
-    while (i < 104) {
+    while (i < kRoomSize) {
         b = *src++;
         if (b & 128) {
             // plus one, very important.
             rpt = *src++ + 1;
 
             // don't write too much
-            if (rpt + i > 104)
-                rpt = 104 - i;
+            if (rpt + i > kRoomSize)
+                rpt = kRoomSize - i;
 
             memset(&dst[i], b & 127, rpt);
             i += rpt;
