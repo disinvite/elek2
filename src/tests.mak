@@ -15,7 +15,12 @@ t_screen_objs = \
 	test\\tester.obj \
 	test\\t_scr.obj
 
-all: tmap tscr
+t_edit_objs = \
+	editor\\editor.obj \
+	test\\tester.obj \
+	test\\t_edit.obj
+
+all: tmap tscr tedit
 
 tmap: $(t_map_objs)
   TLINK $(LDFLAGS) @&&!
@@ -23,6 +28,11 @@ C0$(MODEL).obj $**
 !,$@,$@,CL
 
 tscr: $(t_screen_objs)
+  TLINK $(LDFLAGS) @&&!
+C0$(MODEL).obj $**
+!,$@,$@,CL
+
+tedit: $(t_edit_objs)
   TLINK $(LDFLAGS) @&&!
 C0$(MODEL).obj $**
 !,$@,$@,CL
