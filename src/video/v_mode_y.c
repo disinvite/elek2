@@ -285,6 +285,10 @@ static void draw_vram(byte slot, byte id, int x, int y) {
     outportb(GC_DATA, inportb(GC_DATA) & 0xfc);
 }
 
+static void draw24raw(byte *src, int x, int y) {
+    
+}
+
 static void draw24(byte slot, byte id, int x, int y) {
     int i, j;
     int bx;
@@ -387,6 +391,7 @@ video_drv_t mode_y_drv = {
     &set_fontface,
     &type_msg,
     &update_palette,
+    &draw24raw,
     &draw24,
     &dbg_draw_solid,
     &draw_plane,

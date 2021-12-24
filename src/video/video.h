@@ -22,6 +22,7 @@ typedef struct video_drv_s {
     void (*set_fontface)(byte *font);
     void (*type_msg)(char *msg, int x, int y, byte color);
     void (*update_palette)(color_t *pal);
+    void (*draw24raw)(byte *src, int x, int y);
     void (*draw24)(byte slot, byte id, int x, int y);
     void (*dbg_draw_solid)(byte *map);
     void (*draw_plane)(byte *plane, byte fast);

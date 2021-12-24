@@ -116,6 +116,43 @@ static void type_msg(char *msg, int x, int y, byte color) {
     }
 }
 
+static void draw24raw(byte *src, int x, int y) {
+    int max_x = (x > 296) ? (320-x) : 24;
+    int max_y = (y > 176) ? (200-y) : 24;
+    int seek_src = 24 - max_x;
+    int seek_row = 320 - max_x;
+    int start = 320 * y + x;
+
+    // oofa
+
+    asm push ds
+    asm push es
+
+    asm mov cx, [max_y]
+    asm les di, [offscreen]
+    asm lds si, [src]
+    asm add di, [start]
+pixrow:
+    asm mov dx, [max_x]
+pixcol:
+    asm lodsb
+    asm and al, al // 0 pixel is transparent.
+    asm jnz skipload
+    asm mov al, es:[di]
+skipload:
+    asm stosb
+    asm dec dx
+    asm jnz pixcol
+
+    asm add si, [seek_src]
+    asm add di, [seek_row]
+    asm dec cx
+    asm jnz pixrow
+
+    asm pop es
+    asm pop ds
+}
+
 static void draw24(byte slot, byte id, int x, int y) {
     int i, j;
     int start;
@@ -247,6 +284,7 @@ video_drv_t mode13_drv = {
     &set_fontface,
     &type_msg,
     &update_palette,
+    &draw24raw,
     &draw24,
     &dbg_draw_solid,
     &draw_plane,

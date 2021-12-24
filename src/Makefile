@@ -17,7 +17,14 @@ objs =  \
  video\\v_mode13.obj \
  video\\v_mode_y.obj
 
-all: elek2
+ed_objs = \
+	ed_main.obj \
+	input\\mouse.obj \
+	input\\mouse_a.obj \
+	video\\video.obj \
+	video\\v_mode13.obj
+
+all: elek2 editor
 
 clean:
 		del input\\*.obj
@@ -30,8 +37,13 @@ elek2: $(objs)
 C0$(MODEL).obj $**
 !,$@,$@,CL
 
+editor: $(ed_objs)
+  TLINK $(LDFLAGS) @&&!
+C0$(MODEL).obj $**
+!,$@,$@,CL
+
 .c.obj:
   BCC $(CCFLAGS) -L$(DIR_LIB) -I$(DIR_HEADERS) -c -o$*.obj $<
 
 .asm.obj:
-  TASM $(TASMFLAGS) $<
+  TASM $(TASMFLAGS) $< $*.obj
