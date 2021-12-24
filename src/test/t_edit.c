@@ -1,5 +1,6 @@
 #include "test/tester.h"
 #include "editor/editor.h"
+#include "map/screen.h"
 
 #include <mem.h>
 
@@ -10,7 +11,7 @@ int pencil_test(void) {
     editor_t ed;
 
     // TODO: reset function?
-    memset(ed.current_screen, 0, sizeof(ed.current_screen));
+    memset(current_room, 0, kRoomSize);
     ed.edit_layer = 1;
     ed.tile_selected = 0x80;
     
@@ -19,7 +20,7 @@ int pencil_test(void) {
     if (ed_func->pencil(&ed, 3, 5))
         return 1;
 
-    if (ed.current_screen[1][5][3] != 0x80)
+    if (current_room[1][5 * 13 + 3] != 0x80)
         return 1;
 
     return 0;

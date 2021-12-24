@@ -4,9 +4,6 @@
 #include "common/types.h"
 
 typedef struct {
-    // the data.
-    byte current_screen[4][13][8];
-
     // whether each layer is displayed 
     bool layer_display[4];
 

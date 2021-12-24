@@ -16,6 +16,7 @@ t_screen_objs = \
 	test\\t_scr.obj
 
 t_edit_objs = \
+	map\\screen.obj \
 	editor\\editor.obj \
 	test\\tester.obj \
 	test\\t_edit.obj

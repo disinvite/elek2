@@ -1,5 +1,6 @@
 #include "common/types.h"
 #include "editor/editor.h"
+#include "map/screen.h"
 
 // Helpers
 
@@ -30,7 +31,7 @@ static int pencil(editor_t *ed, byte x, byte y) {
     if (!checkTileXY(x, y))
         return -1;
 
-    ed->current_screen[ed->edit_layer][y][x] = ed->tile_selected;
+    current_room[ed->edit_layer][y*13 + x] = ed->tile_selected;
     return 0;
 }
 
