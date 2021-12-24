@@ -20,7 +20,13 @@ t_edit_objs = \
 	test\\tester.obj \
 	test\\t_edit.obj
 
-all: tmap tscr tedit
+t_ictrl_objs = \
+	editor\\ed_input.obj \
+	test\\mock\\m_edit.obj \
+	test\\tester.obj \
+	test\\t_ictrl.obj
+
+all: tmap tscr tedit tctrl
 
 tmap: $(t_map_objs)
   TLINK $(LDFLAGS) @&&!
@@ -33,6 +39,11 @@ C0$(MODEL).obj $**
 !,$@,$@,CL
 
 tedit: $(t_edit_objs)
+  TLINK $(LDFLAGS) @&&!
+C0$(MODEL).obj $**
+!,$@,$@,CL
+
+tctrl: $(t_ictrl_objs)
   TLINK $(LDFLAGS) @&&!
 C0$(MODEL).obj $**
 !,$@,$@,CL
