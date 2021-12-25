@@ -19,10 +19,15 @@ objs =  \
 
 ed_objs = \
 	ed_main.obj \
+	editor\\editor.obj \
+	editor\\ed_input.obj \
+	map\\mapfile.obj \
+	map\\screen.obj \
 	input\\mouse.obj \
 	input\\mouse_a.obj \
 	video\\video.obj \
-	video\\v_mode13.obj
+	video\\v_mode13.obj \
+	sprite.obj
 
 all: elek2 editor
 

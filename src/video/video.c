@@ -18,6 +18,12 @@ int DRect_Add(int x0, int y0, int x1, int y1) {
     // fail on invalid rectangle
     if (x1 < x0 || y1 < y0)
         return -1;
+
+    // clamp to screen
+    if (x0 < 0)   x0 = 0;
+    if (x1 > 320) x1 = 320;
+    if (y0 < 0)   y0 = 0;
+    if (y1 > 200) y1 = 200;
     
     // fail if we've got too many rectangles
     if (dirtyRectWritePtr == kMaxDirtyRect)
