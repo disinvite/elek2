@@ -14,8 +14,6 @@
 #include "video/video.h"
 #include "video/v_mode13.h"
 
-video_drv_t *mydrv = &mode13_drv;
-
 byte pointer_data[576];
 editor_t ed;
 
@@ -23,16 +21,6 @@ bool should_redraw = true;
 
 map_packed_t mapfile;
 layer_ptr_t layers;
-
-void loadPal(void) {
-    color_t pal[256];
-
-    FILE *f = fopen("data/em.pal", "rb");
-    fread(&pal, 3, 256, f);
-    fclose(f);
-
-    mydrv->update_palette(pal);
-}
 
 void loadCursor(void) {
     int len;
@@ -68,11 +56,12 @@ void changeRoom(int id) {
 int main(void) {
     int used_vram;
 
+    mydrv = &mode13_drv;
     Mouse_Init();
     printf("helo\n");
 
     mydrv->init();
-    loadPal();
+    V_LoadPal();
     loadCursor();
     mydrv->clear();
     

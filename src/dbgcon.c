@@ -15,10 +15,6 @@ typedef struct dbg_entry_s {
 
 // 128 chars, 8 bytes per character.
 #define kDbgMaxSize 6
-static byte dbg_font[128][8];
-
-// function pointers into the video driver
-static video_drv_t *mydrv;
 
 static dbg_entry_t dbg_stack[kDbgMaxSize];
 static dbg_entry_t *dStart;
@@ -31,20 +27,8 @@ static char fpsbuf[4];
 
 static bool dbg_redraw = false;
 
-void DbgCon_Init(char *filename, video_drv_t *_drv) {
+void DbgCon_Init(void) {
     int i;
-
-    FILE *f = fopen(filename, "rb");
-    if (!f)
-        return;
-    if (fread(&dbg_font, 8, 128, f) != 128) {
-        fclose(f);
-        return;
-    }
-    fclose(f);
-
-    mydrv = _drv;
-    mydrv->set_fontface(&dbg_font);
 
     dStart = &dbg_stack[0];
     dEnd = dStart;

@@ -15,8 +15,6 @@
 #include "video/v_mode13.h"
 #include "video/v_mode_y.h"
 
-video_drv_t *mydrv = &mode13_drv;
-
 byte collide_flag = 0;
 
 bool screen_redraw = true;
@@ -25,15 +23,6 @@ bool dbgcon_redraw = true;
 // map stuff.
 map_packed_t mapfile;
 layer_ptr_t layers;
-
-void load_pal(void) {
-    color_t pal[256];
-    FILE *f = fopen("data/em.pal", "rb");
-    fread(&pal, 3, 256, f);
-    fclose(f);
-
-    mydrv->update_palette(pal);
-}
 
 void displaySheet(void) {
     int row;
@@ -83,6 +72,7 @@ int main() {
     char buf[20];
     byte used_vram;
 
+    mydrv = &mode13_drv;
     readGGS("data/elek1.ggs", 0);
     readGGS("data/elek2.ggs", 1);
     MapPacked_ReadFromFile(&mapfile, "data/elek.ggc");
@@ -90,8 +80,9 @@ int main() {
     PIT_Setup();
     Input_Setup();
     mydrv->init();
-    load_pal();
-    DbgCon_Init("data/BALD8X8.FNT", mydrv);
+    V_LoadFont("data/bald8x8.fnt");
+    V_LoadPal();
+    DbgCon_Init();
     //displaySheet();
 
     // needs to happen after the video init so VRAM is ready.

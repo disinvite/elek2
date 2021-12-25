@@ -1,8 +1,38 @@
 #include "common/types.h"
 #include "video/video.h"
 
+#include <stdio.h>
+
+video_drv_t *mydrv = 0;
+
 rect_t dirtyRectangles[kMaxDirtyRect];
 int dirtyRectWritePtr = 0;
+
+static byte dbg_font[128][8];
+
+void V_LoadFont(char *filename) {
+    FILE *f = fopen(filename, "rb");
+    
+    if (!f)
+        return;
+
+    if (fread(&dbg_font, 8, 128, f) != 128) {
+        fclose(f);
+        return;
+    }
+    fclose(f);
+
+    mydrv->set_fontface(&dbg_font);
+}
+
+void V_LoadPal(void) {
+    color_t pal[256];
+    FILE *f = fopen("data/em.pal", "rb");
+    fread(&pal, 3, 256, f);
+    fclose(f);
+
+    mydrv->update_palette(pal);
+}
 
 void DRect_Reset(void) {
     dirtyRectWritePtr = 0;    

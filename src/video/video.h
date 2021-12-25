@@ -31,9 +31,13 @@ typedef struct video_drv_s {
     void (*drect)(void);
 } video_drv_t;
 
+extern video_drv_t *mydrv;
+
 extern rect_t dirtyRectangles[kMaxDirtyRect];
 extern int dirtyRectWritePtr;
 
+void V_LoadFont(char *filename);
+void V_LoadPal(void);
 void DRect_Reset(void);
 int DRect_Any(void);
 int DRect_Add(int x0, int y0, int x1, int y1);
