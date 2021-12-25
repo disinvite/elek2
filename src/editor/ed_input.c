@@ -1,5 +1,6 @@
 // Input controller for the editor
 #include "common/types.h"
+#include "common/scancode.h"
 #include "editor/editor.h"
 
 // Done this way so we can mock the editor API for testing purposes.
@@ -20,13 +21,18 @@ int Mouse_Event(int x, int y, bool lbutton, bool rbutton) {
     int gx, gy;
     MouseScalePoints(x, y, &gx, &gy);
 
-    // switch mode.
-    api->pencil(ed, gx, gy);
+    // TODO: switch mode.
+    
+    if (lbutton)
+        api->pencil(ed, gx, gy);
 
     return 0;
 }
 
 int Keyb_Event(int scancode, bool keydown) {
+    if (scancode >= SC_1 && scancode <= SC_4)
+        api->selectLayer(ed, scancode - SC_1);
+
     return 0;
 }
 

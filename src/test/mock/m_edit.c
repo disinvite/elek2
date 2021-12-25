@@ -6,6 +6,12 @@
 editfn_t mockEditLastCalled = 0;
 int mockEditArgs[10] = {0};
 
+// call in setup or teardown method of each test.
+void MockEditReset(void) {
+    mockEditLastCalled = 0;
+    memset(mockEditArgs, 0, sizeof(mockEditArgs));
+}
+
 static int selectLayer(editor_t *ed, int layer) {
     mockEditLastCalled = kSelectLayer;
     mockEditArgs[0] = layer;

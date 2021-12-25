@@ -10,6 +10,8 @@ typedef enum {
     kPencil
 } editfn_t;
 
+void MockEditReset(void);
+
 extern editor_api_t mock_editor_api;
 extern editfn_t mockEditLastCalled;
 extern int mockEditArgs[10];
