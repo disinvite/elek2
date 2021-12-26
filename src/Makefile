@@ -14,8 +14,7 @@ objs =  \
  input\\timer.obj \
  dbgcon.obj \
  video\\video.obj \
- video\\v_mode13.obj \
- video\\v_mode_y.obj
+ video\\v_mode13.obj 
 
 ed_objs = \
 	ed_main.obj \

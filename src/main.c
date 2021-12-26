@@ -13,7 +13,6 @@
 #include "sprite.h"
 #include "video/video.h"
 #include "video/v_mode13.h"
-#include "video/v_mode_y.h"
 
 byte collide_flag = 0;
 
