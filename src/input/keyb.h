@@ -6,7 +6,7 @@
 extern byte keyDown[101];
 extern byte keyHeld[101];
 
-
+int Keyb_PumpEvents(int *keycode);
 void Input_Setup(void);
 void Input_Shutdown(void);
 

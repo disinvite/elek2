@@ -1,7 +1,6 @@
 // ELEK2 EDITOR
 #include "common/types.h"
 
-#include <conio.h>
 #include <mem.h>
 #include <stdio.h>
 
@@ -10,6 +9,7 @@
 #include "map/mapfile.h"
 #include "map/screen.h"
 #include "sprite.h"
+#include "input/keyb.h"
 #include "input/mouse.h"
 #include "video/video.h"
 #include "video/v_mode13.h"
@@ -55,8 +55,10 @@ void changeRoom(int id) {
 
 int main(void) {
     int used_vram;
+    int keycode;
 
     mydrv = &mode13_drv;
+    Input_Setup();
     Mouse_Init();
     printf("helo\n");
 
@@ -74,7 +76,10 @@ int main(void) {
     EdControl_Setup(&ed, &editor_api);
     changeRoom(0);
 
-    while (!kbhit()) {
+    while (1) {
+        if (keyHeld[0x1] || keyHeld[0x10])
+            break;
+
         while (Mouse_PumpEvents()) {
             Mouse_Event(mouse_xpos, mouse_ypos, mouse_left, mouse_right);
 
@@ -83,6 +88,10 @@ int main(void) {
                 should_redraw = true;
                 dirtyRectWritePtr = 0;
             }
+        }
+
+        while (Keyb_PumpEvents(&keycode)) {
+            Keyb_Event(keycode & 0x7f, ((keycode >> 7) ^ 1));
         }
 
         if (dirtyRectWritePtr > 0) {
@@ -97,9 +106,9 @@ int main(void) {
         DRect_Add(mouse_xpos / 2, mouse_ypos, mouse_xpos / 2 + 24, mouse_ypos + 24);
         mydrv->update();
     }
-    getch();
 
     mydrv->shutdown();
+    Input_Shutdown();
     Mouse_Shutdown();
     MapPacked_FreeData(&mapfile);
     free_sprites();

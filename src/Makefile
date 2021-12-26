@@ -23,6 +23,7 @@ ed_objs = \
 	editor\\ed_input.obj \
 	map\\mapfile.obj \
 	map\\screen.obj \
+	input\\keyb.obj \
 	input\\mouse.obj \
 	input\\mouse_a.obj \
 	video\\video.obj \
