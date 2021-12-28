@@ -74,11 +74,41 @@ int invalid_selectLayer(void) {
     return 0;
 }
 
+int screenUpdate_test(void) {
+    editor_t ed;
+
+    // TODO: reset function?
+    memset(current_room, 0, kRoomSize);
+    ed.edit_layer = 0;
+    ed.tile_selected = 0;
+    memset(tileUpdateX, 0, sizeof(tileUpdateX));
+    memset(tileUpdateY, 0, sizeof(tileUpdateY));
+    Screen_AckUpdates();
+
+    // Should NOT modify anything
+    ed_func->pencil(&ed, 3, 5);
+    if (tileUpdatePtr > 0)
+        return 1;
+
+    ed.tile_selected = 0x80;
+    ed_func->pencil(&ed, 3, 5);
+
+    if (tileUpdatePtr != 1)
+        return 1;
+
+    if (tileUpdateX[0] != 3 && tileUpdateY[0] != 5)
+        return 1;
+
+    Screen_AckUpdates();
+    return 0;
+}
+
 test_t tests[] = {
     {"pencil update", &pencil_test},
     {"pencil reject invalid xy", &invalid_pencil},
     {"select layer", &selectLayer_test},
     {"select layer reject invalid layer", &invalid_selectLayer},
+    {"screen update tracker", &screenUpdate_test},
     {0, 0} // EOL
 };
 

@@ -37,6 +37,33 @@ static byte kLutVH[kRoomSize] = {
 // Room data for all users of the API
 byte current_room[4][kRoomSize];
 
+// Index of which tiles which have been updated since the last acknowledgement
+// Intended for surgical screen buffer updates, but I guess it might have
+// some other use.
+// If you exceed some threshhold, is it cheaper to redraw the entire screen?
+// TODO: static?
+int tileUpdateX[kMaxTileUpdate] = {0};
+int tileUpdateY[kMaxTileUpdate] = {0};
+int tileUpdatePtr = 0;
+
+// Mark grid tiles that should be redrawn from scratch
+// prior to screen update.
+// Return error if we have hit the max for updates this frame
+int Screen_TileChanged(int x, int y) {
+    if (tileUpdatePtr == kMaxTileUpdate)
+        return 1;
+
+    tileUpdateX[tileUpdatePtr] = x;
+    tileUpdateY[tileUpdatePtr] = y;
+    tileUpdatePtr++;
+
+    return 0;
+}
+
+void Screen_AckUpdates(void) {
+    tileUpdatePtr = 0;
+}
+
 void Layer_htov(byte *src) {
     int i;
     

@@ -31,7 +31,10 @@ static int pencil(editor_t *ed, byte x, byte y) {
     if (!checkTileXY(x, y))
         return -1;
 
-    current_room[ed->edit_layer][y*13 + x] = ed->tile_selected;
+    if (current_room[ed->edit_layer][y*13 + x] != ed->tile_selected) {
+        current_room[ed->edit_layer][y*13 + x] = ed->tile_selected;
+        Screen_TileChanged(x, y);
+    }
     return 0;
 }
 
