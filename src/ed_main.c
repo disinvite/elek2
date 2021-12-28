@@ -31,10 +31,10 @@ void loadCursor(void) {
 
 void displayMap(void) {
     mydrv->clear();
-    mydrv->draw_plane(&current_room[0], 0);
-    mydrv->draw_plane(&current_room[1], 0);
-    mydrv->draw_plane(&current_room[2], 0);
-    mydrv->draw_plane(&current_room[3], 0);
+    mydrv->draw_plane(0, false);
+    mydrv->draw_plane(1, false);
+    mydrv->draw_plane(2, false);
+    mydrv->draw_plane(3, false);
 
     // Save off the existing screen data here.
     mydrv->copy_backbuf();
@@ -74,6 +74,7 @@ int main(void) {
     mydrv->load_sprites(getSpriteSlot(1), 1, &used_vram);
 
     EdControl_Setup(&ed, &editor_api);
+    editor_api.selectTile(&ed, 5);
     changeRoom(0);
 
     while (1) {
@@ -84,15 +85,19 @@ int main(void) {
             Mouse_Event(mouse_xpos, mouse_ypos, mouse_left, mouse_right);
 
             // TODO: dumb assumption.
+            /*
             if (mouse_left) {
                 should_redraw = true;
                 dirtyRectWritePtr = 0;
             }
+            */
         }
 
         while (Keyb_PumpEvents(&keycode)) {
             Keyb_Event(keycode & 0x7f, ((keycode >> 7) ^ 1));
         }
+
+        mydrv->redrawChanged();
 
         if (dirtyRectWritePtr > 0) {
             mydrv->drect();

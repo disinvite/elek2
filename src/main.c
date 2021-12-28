@@ -36,10 +36,10 @@ void displaySheet(void) {
 
 void displayMap(void) {
     mydrv->clear();
-    mydrv->draw_plane(&current_room[0], 0);
-    mydrv->draw_plane(&current_room[1], 0);
-    mydrv->draw_plane(&current_room[2], 0);
-    mydrv->draw_plane(&current_room[3], 0);
+    mydrv->draw_plane(0, false);
+    mydrv->draw_plane(1, false);
+    mydrv->draw_plane(2, false);
+    mydrv->draw_plane(3, false);
 
     // Save off the existing screen data here.
     mydrv->copy_backbuf();
