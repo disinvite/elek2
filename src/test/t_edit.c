@@ -6,6 +6,31 @@
 
 editor_api_t *ed_func = &editor_api;
 
+// Test of moving between different states on the state machine
+int basic_state_test(void) {
+    editor_t ed;
+    memset(&ed, 0, sizeof(ed));
+
+    if (ed_func->openModal(&ed, 0))
+        return 1;
+    
+    // Confirm we will display the modal
+    if (ed.state != kStateShowModal)
+        return 1;
+
+    // Imitate the action of displaying the modal and changing state.
+    ed.state = kStateModalNormal;
+
+    if (ed_func->closeModal(&ed))
+        return 1;
+
+    // Confirm that we will close it
+    if (ed.state != kStateHideModal)
+        return 1;
+
+    return 0;
+}
+
 // Should plot the selected tile value in the expected position.
 int pencil_test(void) {
     editor_t ed;
@@ -104,11 +129,15 @@ int screenUpdate_test(void) {
 }
 
 test_t tests[] = {
+    // editing tool tests
     {"pencil update", &pencil_test},
     {"pencil reject invalid xy", &invalid_pencil},
     {"select layer", &selectLayer_test},
     {"select layer reject invalid layer", &invalid_selectLayer},
     {"screen update tracker", &screenUpdate_test},
+
+    // state tests
+    {"editor state machine (simple)", &basic_state_test},
     {0, 0} // EOL
 };
 

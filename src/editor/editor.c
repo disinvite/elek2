@@ -38,8 +38,29 @@ static int pencil(editor_t *ed, byte x, byte y) {
     return 0;
 }
 
+static int openModal(editor_t *ed, modal_t *modal) {
+    // Can't open a new modal if one is already open
+    if (ed->state != kStateNormal)
+        return 1;
+
+    ed->state = kStateShowModal;
+    return 0;
+}
+
+static int closeModal(editor_t *ed) {
+    // How can you close what isn't open
+    if (ed->state != kStateModalNormal)
+        return 1;
+
+    ed->state = kStateHideModal;
+    return 0;
+}
+
 editor_api_t editor_api = {
     &selectLayer,
     &selectTile,
-    &pencil
+    &pencil,
+
+    &openModal,
+    &closeModal,
 };

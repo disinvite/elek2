@@ -7,7 +7,9 @@
 typedef enum {
     kSelectLayer = 1,
     kSelectTile,
-    kPencil
+    kPencil,
+    kShowModal,
+    kCloseModal
 } editfn_t;
 
 void MockEditReset(void);
