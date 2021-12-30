@@ -36,6 +36,7 @@ int pencil_test(void) {
     editor_t ed;
 
     // TODO: reset function?
+    ed.state = kStateNormal;
     memset(current_room, 0, kRoomSize);
     ed.edit_layer = 1;
     ed.tile_selected = 0x80;
@@ -55,6 +56,7 @@ int pencil_test(void) {
 int invalid_pencil(void) {
     editor_t ed;
 
+    ed.state = kStateNormal;
     ed.edit_layer = 1;
     ed.tile_selected = 0x80;
 
@@ -67,6 +69,21 @@ int invalid_pencil(void) {
     // If the dimensions of the array change, an alarm should go off here.
     if (!ed_func->pencil(&ed, 2, 12))
         return -1;
+
+    return 0;
+}
+
+// We can't use the pencil if we're in a modal (for example)
+int pencil_wrong_state(void) {
+    editor_t ed;
+
+    // Example state where using the pencil is not allowed
+    // TODO: Do we need an exhaustive test?
+    ed.state = kStateShowModal;
+    
+    // Should fail to update
+    if (!ed_func->pencil(&ed, 3, 5))
+        return 1;
 
     return 0;
 }
@@ -104,6 +121,7 @@ int screenUpdate_test(void) {
 
     // TODO: reset function?
     memset(current_room, 0, kRoomSize);
+    ed.state = kStateNormal;
     ed.edit_layer = 0;
     ed.tile_selected = 0;
     memset(tileUpdateX, 0, sizeof(tileUpdateX));
@@ -138,6 +156,7 @@ test_t tests[] = {
 
     // state tests
     {"editor state machine (simple)", &basic_state_test},
+    {"can't use pencil in non-edit state", &pencil_wrong_state},
     {0, 0} // EOL
 };
 

@@ -27,6 +27,10 @@ typedef struct {
     // For now, just used to show/hide modal
     ed_state_t state;
 
+    // If we are showing/hiding/displaying a modal, this is the one.
+    // In any other state this can be NULL
+    modal_t *current_modal;
+
     // whether each layer is displayed 
     bool layer_display[4];
 

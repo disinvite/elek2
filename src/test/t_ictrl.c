@@ -13,6 +13,7 @@ int pencil_test(void) {
     editor_t ed;
 
     EdControl_Setup(&ed, ed_func);
+    ed.state = kStateNormal;
     MockEditReset();
 
     if (Mouse_Event(0, 0, false, false))
@@ -51,6 +52,7 @@ int layerselect_test(void) {
     editor_t ed;
 
     EdControl_Setup(&ed, ed_func);
+    ed.state = kStateNormal;
 
     // 1 key selects first layer (id=0)
     if (Keyb_Event(SC_1, true))

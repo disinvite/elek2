@@ -22,6 +22,16 @@ bool should_redraw = true;
 map_packed_t mapfile;
 layer_ptr_t layers;
 
+
+// No special function when you click it.
+button_t btnOkGeneric = {"OK", 0};
+
+modal_t welcomeMsg = {
+    "ELEK2 EDITOR by disinvite.",
+    {&btnOkGeneric, 0, 0},
+    0
+};
+
 void loadCursor(void) {
     int len;
     FILE *f = fopen("data/point24.bin", "rb");
@@ -61,6 +71,8 @@ void drawTheBox(void) {
     mydrv->use_backbuf(true);
     mydrv->fillRect(&rect, 3);
     mydrv->strokeRect(&rect, 5);
+    mydrv->type_msg("hello there", 101, 41, 0);
+    mydrv->type_msg("hello there", 100, 40, 9);
     mydrv->copy_backbuf();
     mydrv->use_backbuf(false);
 }
@@ -75,6 +87,7 @@ int main(void) {
     printf("helo\n");
 
     mydrv->init();
+    V_LoadFont("data/bald8x8.fnt");
     V_LoadPal();
     loadCursor();
     mydrv->clear();
@@ -87,7 +100,17 @@ int main(void) {
 
     EdControl_Setup(&ed, &editor_api);
     editor_api.selectTile(&ed, 5);
+    editor_api.openModal(&ed, &welcomeMsg);
+    
     changeRoom(0);
+
+    // Mock the first tick so we have something onscreen to look at
+    // TODO: This will go away
+    // Change room will redraw
+    // We also need a first-run state for the app
+    // Unless we just show a splash screen or whatever
+    displayMap();
+    mydrv->update();
 
     while (1) {
         // Exit on Q or Escape keypress.
@@ -117,11 +140,16 @@ int main(void) {
         // Update anything we need to redraw
         mydrv->drect();
 
-        // TODO: changing soon
-        if (should_redraw) {
-            displayMap();
-            drawTheBox();
-            should_redraw = false;
+        switch (ed.state) {
+            case kStateShowModal:
+                drawTheBox();
+                ed.state = kStateModalNormal;
+                break;
+
+            case kStateHideModal:
+                displayMap();
+                ed.state = kStateNormal;
+                break;
         }
 
         // Pointer (and other overlays) drawn last.
