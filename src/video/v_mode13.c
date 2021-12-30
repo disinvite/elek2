@@ -24,10 +24,17 @@ static byte *offscreen;
 static byte *backbuf_naked;
 static byte *backbuf;
 
+// Either `backbuf` or `offscreen`.
+static byte *activebuf;
+
 // 8x8 pixel font for debug display
 static byte *pixel_font = 0;
 
 static byte *buffer_src[kMaxVidSrc][64];
+
+// True if offscreen completely replaced by backbuf.
+// If that happens, we don't need to spot repaint or do dirty rectangles
+static bool offscreen_redrawn = false;
 
 static void init(void) {
     asm mov ax, 0x13
@@ -38,6 +45,8 @@ static void init(void) {
 
     backbuf_naked = malloc(64016);
     backbuf = MK_FP(FP_SEG(backbuf_naked) + 1, 0);
+
+    activebuf = offscreen;
 }
 
 static void shutdown(void) {
@@ -45,11 +54,11 @@ static void shutdown(void) {
     asm int 0x10
 
     free(offscreen_naked);
-    free(backbuf);
+    free(backbuf_naked);
 }
 
 static void clear(void) {
-    memset(offscreen, 0, 64000);
+    memset(activebuf, 0, 64000);
 }
 
 static int load_sprites(byte **sprites, byte slot, byte *used_vram) {
@@ -65,6 +74,8 @@ static void update(void) {
     while((inportb(0x3da) & 8) == 0);
 
     memcpy(VGA, offscreen, 64000);
+    offscreen_redrawn = false;
+    activebuf = offscreen;
 }
 
 // just assume you got the full 256 colors for now.
@@ -103,7 +114,7 @@ static void type_msg(char *msg, int x, int y, byte color) {
             b = pixel_font[8*ofs + row];
             for (t = 0; t < 8; t++) {
                 if (b&128)
-                    offscreen[320 * (y+row) + x + t] = color;
+                    activebuf[320 * (y+row) + x + t] = color;
                     //*(start + 320*row + x + t) = color;
                 b <<= 1;
             }
@@ -129,7 +140,7 @@ static void draw24raw(byte *src, int x, int y) {
     asm push es
 
     asm mov cx, [max_y]
-    asm les di, [offscreen]
+    asm les di, [activebuf]
     asm lds si, [src]
     asm add di, [start]
 pixrow:
@@ -167,44 +178,7 @@ static void draw24(byte slot, byte id, int x, int y) {
     asm push es
 
     asm mov cx, 24
-    asm les di, [offscreen]
-    asm lds si, [src]
-    asm add di, [start]
-pixrow:
-    asm mov dx, 24
-pixcol:
-    asm lodsb
-    asm and al, al // 0 pixel is transparent.
-    asm jnz skipload
-    asm mov al, es:[di]
-skipload:
-    asm stosb
-    asm dec dx
-    asm jnz pixcol
-
-    asm add di, 296
-    asm dec cx
-    asm jnz pixrow
-
-    asm pop es
-    asm pop ds
-}
-
-static void _draw24bb(byte slot, byte id, int x, int y) {
-    int i, j;
-    int start;
-    
-    byte *src = buffer_src[slot][id];
-    if (!src)
-        return;
-
-    start = 320 * 24 * y + 24 * x;
-
-    asm push ds
-    asm push es
-
-    asm mov cx, 24
-    asm les di, [backbuf]
+    asm les di, [activebuf]
     asm lds si, [src]
     asm add di, [start]
 pixrow:
@@ -233,7 +207,7 @@ static void _clear24(int x, int y) {
     asm push es
     asm xor ax, ax // Write word 0
     asm mov dx, 24 // number of rows
-    asm les di, [backbuf] // TODO: backbuf here?
+    asm les di, [activebuf]
     asm add di, [start]
 pixrow:
     asm mov cx, 12 // use CX for `rep`. 12 words to be written.
@@ -286,22 +260,30 @@ static void draw_plane(int id, bool fast) {
 static void redrawChanged(void) {
     int i;
     int layer;
+    byte *tbuf;
 
-    for (i = 0; i < tileUpdatePtr; i++) {
-        int x = tileUpdateX[i];
-        int y = tileUpdateY[i];
-        _clear24(x, y);
+    if (!offscreen_redrawn) {
+        tbuf = activebuf;
+        activebuf = backbuf;
 
-        // update will go to the backbuf first,
-        // then get propagated to the offscreen buf.
-        // TODO: right?
-        DRect_Add(x*24, y*24, x*24 + 24, y*24 + 24);
+        for (i = 0; i < tileUpdatePtr; i++) {
+            int x = tileUpdateX[i];
+            int y = tileUpdateY[i];
+            _clear24(x, y);
 
-        for (layer = 0; layer < 3; layer++) {
-            int val = current_room[layer][y*13 + x];
-            if (val)
-                _draw24bb(val >> 6, val & 63, x, y);
+            // update will go to the backbuf first,
+            // then get propagated to the offscreen buf.
+            // TODO: right?
+            DRect_Add(x*24, y*24, x*24 + 24, y*24 + 24);
+
+            for (layer = 0; layer < 3; layer++) {
+                int val = current_room[layer][y*13 + x];
+                if (val)
+                    draw24(val >> 6, val & 63, x, y);
+            }
         }
+
+        activebuf = tbuf;
     }
 
     Screen_AckUpdates();
@@ -328,7 +310,8 @@ static void draw_region(byte *plane, int x0, int x1, int y0, int y1, byte fast) 
 }
 
 static void copy_backbuf(void) {
-    memcpy(backbuf, offscreen, 64000);
+    memcpy(offscreen, backbuf, 64000);
+    offscreen_redrawn = true;
 }
 
 static void drect(void) {
@@ -339,20 +322,60 @@ static void drect(void) {
     byte *src;
     byte *dst;
 
-    for (i = 0; i < dirtyRectWritePtr; i++) {
-        t = &dirtyRectangles[i];
-        src = backbuf   + 320 * t->y0 + t->x0;
-        dst = offscreen + 320 * t->y0 + t->x0;
+    if (!offscreen_redrawn) {
+        for (i = 0; i < dirtyRectWritePtr; i++) {
+            t = &dirtyRectangles[i];
+            src = backbuf   + 320 * t->y0 + t->x0;
+            dst = offscreen + 320 * t->y0 + t->x0;
 
-        for (row = t->y0; row < t->y1; row++) {
-            len = t->x1 - t->x0;
-            memcpy(dst, src, len);
-            src += 320;
-            dst += 320;
+            for (row = t->y0; row < t->y1; row++) {
+                len = t->x1 - t->x0;
+                memcpy(dst, src, len);
+                src += 320;
+                dst += 320;
+            }
         }
     }
 
     dirtyRectWritePtr = 0;
+}
+
+// 1px thickness only for now.
+static void strokeRect(rect_t *rect, byte color) {
+    int row;
+    int nrows = rect->y1 - rect->y0;
+    int ncols = rect->x1 - rect->x0;
+    byte *dst = activebuf + 320 * rect->y0 + rect->x0;
+
+    // first row
+    memset(dst, color, ncols);
+    dst += 320;
+
+    // left and right edge of each row.
+    for (row = 1; row < (nrows-1); row++) {
+        *dst = color;
+        *(dst + ncols - 1) = color;
+        dst += 320;
+    }
+
+    // last row
+    memset(dst, color, ncols);
+}
+
+static void fillRect(rect_t *rect, byte color) {
+    int row;
+    int nrows = rect->y1 - rect->y0;
+    int ncols = rect->x1 - rect->x0;
+    byte *dst = activebuf + 320 * rect->y0 + rect->x0;
+
+    for (row = 0; row < nrows; row++) {
+        memset(dst, color, ncols);
+        dst += 320;
+    }
+}
+
+static void use_backbuf(bool b) {
+    activebuf = b ? backbuf : offscreen;
 }
 
 video_drv_t mode13_drv = {
@@ -371,5 +394,8 @@ video_drv_t mode13_drv = {
     &redrawChanged,
     &draw_region,
     &copy_backbuf,
-    &drect
+    &drect,
+    &strokeRect,
+    &fillRect,
+    &use_backbuf
 };

@@ -30,14 +30,17 @@ void loadCursor(void) {
 }
 
 void displayMap(void) {
+    // Rebuild backbuffer as the basis for drawing this room.
+    mydrv->use_backbuf(true);
     mydrv->clear();
     mydrv->draw_plane(0, false);
     mydrv->draw_plane(1, false);
     mydrv->draw_plane(2, false);
     mydrv->draw_plane(3, false);
 
-    // Save off the existing screen data here.
+    // Copy back buffer to offscreen.
     mydrv->copy_backbuf();
+    mydrv->use_backbuf(false);
 }
 
 void changeRoom(int id) {
@@ -51,6 +54,15 @@ void changeRoom(int id) {
         else
             memset(current_room[i], 0, kRoomSize);
     }
+}
+
+void drawTheBox(void) {
+    rect_t rect = {80, 30, 240, 170};
+    mydrv->use_backbuf(true);
+    mydrv->fillRect(&rect, 3);
+    mydrv->strokeRect(&rect, 5);
+    mydrv->copy_backbuf();
+    mydrv->use_backbuf(false);
 }
 
 int main(void) {
@@ -78,6 +90,7 @@ int main(void) {
     changeRoom(0);
 
     while (1) {
+        // Exit on Q or Escape keypress.
         if (keyHeld[0x1] || keyHeld[0x10])
             break;
 
@@ -97,18 +110,29 @@ int main(void) {
             Keyb_Event(keycode & 0x7f, ((keycode >> 7) ^ 1));
         }
 
+        // If any tiles just changed as a result of events
+        // Update them on the backbuffer
         mydrv->redrawChanged();
 
-        if (dirtyRectWritePtr > 0) {
-            mydrv->drect();
-        }
+        // Update anything we need to redraw
+        mydrv->drect();
 
+        // TODO: changing soon
         if (should_redraw) {
             displayMap();
+            drawTheBox();
             should_redraw = false;
         }
+
+        // Pointer (and other overlays) drawn last.
+        // Reasonable to expect these to update every frame.
         mydrv->draw24raw(pointer_data, mouse_xpos / 2, mouse_ypos);
+        
+        // Save dirty rectangle of pointer position because we need
+        // to un-paint it on the next frame.
         DRect_Add(mouse_xpos / 2, mouse_ypos, mouse_xpos / 2 + 24, mouse_ypos + 24);
+
+        // Wait for vblank and write to 0xa000.
         mydrv->update();
     }
 

@@ -35,14 +35,17 @@ void displaySheet(void) {
 }
 
 void displayMap(void) {
+    // Rebuild backbuffer as the basis for drawing this room.
+    mydrv->use_backbuf(true);
     mydrv->clear();
     mydrv->draw_plane(0, false);
     mydrv->draw_plane(1, false);
     mydrv->draw_plane(2, false);
     mydrv->draw_plane(3, false);
 
-    // Save off the existing screen data here.
+    // Copy back buffer to offscreen.
     mydrv->copy_backbuf();
+    mydrv->use_backbuf(false);
 }
 
 void changeRoom(int id) {
@@ -104,9 +107,7 @@ int main() {
             dirtyRectWritePtr = 0;
         }
 
-        if (dirtyRectWritePtr > 0) {
-            mydrv->drect();
-        }
+        mydrv->drect();
 
         dbgcon_redraw = DbgCon_Tick(game_seconds);
 

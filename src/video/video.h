@@ -30,6 +30,9 @@ typedef struct video_drv_s {
     void (*draw_region)(byte *plane, int x0, int x1, int y0, int y1, byte fast);
     void (*copy_backbuf)(void);
     void (*drect)(void);
+    void (*strokeRect)(rect_t *rect, byte color);
+    void (*fillRect)(rect_t *rect, byte color);
+    void (*use_backbuf)(bool b);
 } video_drv_t;
 
 extern video_drv_t *mydrv;
