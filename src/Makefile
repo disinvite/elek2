@@ -25,6 +25,7 @@ ed_objs = \
 	input\\keyb.obj \
 	input\\mouse.obj \
 	input\\mouse_a.obj \
+	ui\\msgbar.obj \
 	video\\video.obj \
 	video\\v_mode13.obj \
 	sprite.obj

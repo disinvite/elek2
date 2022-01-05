@@ -27,7 +27,12 @@ t_ictrl_objs = \
 	test\\tester.obj \
 	test\\t_ictrl.obj
 
-all: tmap tscr tedit tctrl
+t_umsg_objs = \
+	ui\\msgbar.obj \
+	test\\tester.obj \
+	test\\t_umsg.obj
+
+all: tmap tscr tedit tctrl tumsg
 
 tmap: $(t_map_objs)
   TLINK $(LDFLAGS) @&&!
@@ -45,6 +50,11 @@ C0$(MODEL).obj $**
 !,$@,$@,CL
 
 tctrl: $(t_ictrl_objs)
+  TLINK $(LDFLAGS) @&&!
+C0$(MODEL).obj $**
+!,$@,$@,CL
+
+tumsg: $(t_umsg_objs)
   TLINK $(LDFLAGS) @&&!
 C0$(MODEL).obj $**
 !,$@,$@,CL

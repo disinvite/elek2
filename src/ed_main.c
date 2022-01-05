@@ -11,6 +11,7 @@
 #include "sprite.h"
 #include "input/keyb.h"
 #include "input/mouse.h"
+#include "ui/msgbar.h"
 #include "video/video.h"
 #include "video/v_mode13.h"
 
@@ -68,11 +69,14 @@ void changeRoom(int id) {
 
 void drawTheBox(void) {
     rect_t rect = {80, 30, 240, 170};
+    rect_t ok_rect = {100, 130, 140, 150};
     mydrv->use_backbuf(true);
+    mydrv->darken(true);
     mydrv->fillRect(&rect, 3);
     mydrv->strokeRect(&rect, 5);
-    mydrv->type_msg("hello there", 101, 41, 0);
     mydrv->type_msg("hello there", 100, 40, 9);
+    mydrv->strokeRect(&ok_rect, 5);
+    mydrv->type_msg("Ok", 120, 134, 9);
     mydrv->copy_backbuf();
     mydrv->use_backbuf(false);
 }
@@ -103,6 +107,7 @@ int main(void) {
     editor_api.openModal(&ed, &welcomeMsg);
     
     changeRoom(0);
+    MsgBar_Set("stay awhile and listen");
 
     // Mock the first tick so we have something onscreen to look at
     // TODO: This will go away
@@ -159,6 +164,9 @@ int main(void) {
         // Save dirty rectangle of pointer position because we need
         // to un-paint it on the next frame.
         DRect_Add(mouse_xpos / 2, mouse_ypos, mouse_xpos / 2 + 24, mouse_ypos + 24);
+
+        MsgBar_Tick();
+        MsgBar_Draw();
 
         // Wait for vblank and write to 0xa000.
         mydrv->update();
