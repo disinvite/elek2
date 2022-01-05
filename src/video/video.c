@@ -8,6 +8,8 @@ video_drv_t *mydrv = 0;
 rect_t dirtyRectangles[kMaxDirtyRect];
 int dirtyRectWritePtr = 0;
 
+static color_t gamepal[256];
+
 static byte dbg_font[128][8];
 
 void V_LoadFont(char *filename) {
@@ -26,12 +28,11 @@ void V_LoadFont(char *filename) {
 }
 
 void V_LoadPal(void) {
-    color_t pal[256];
     FILE *f = fopen("data/em.pal", "rb");
-    fread(&pal, 3, 256, f);
+    fread(&gamepal, 3, 256, f);
     fclose(f);
 
-    mydrv->update_palette(pal);
+    mydrv->update_palette(gamepal);
 }
 
 void DRect_Reset(void) {

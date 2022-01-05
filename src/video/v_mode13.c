@@ -378,6 +378,37 @@ static void use_backbuf(bool b) {
     activebuf = b ? backbuf : offscreen;
 }
 
+static void darken(bool darker) {
+    int i;
+    int j;
+    byte *p = activebuf;
+
+    if (darker) {
+        // grid pattern to match original game.
+        for (j = 0; j < 200; j++) {
+            if ((j&1)==0) {
+                memset(p, 0, 320);
+                p+=320;
+                continue;
+            }
+
+            for (i = 0; i < 160; i++) {
+                *p = 0;
+                p+=2;
+            }
+        }
+    } else {
+        // checkerboard pattern.
+        for (j = 0; j < 200; j++) {
+            for (i = 0; i < 320; i++) {
+                if ((i+j)&1)
+                    *p = 0;
+                p++;
+            }
+        }
+    }
+}
+
 video_drv_t mode13_drv = {
     &init,
     &shutdown,
@@ -397,5 +428,6 @@ video_drv_t mode13_drv = {
     &drect,
     &strokeRect,
     &fillRect,
-    &use_backbuf
+    &use_backbuf,
+    &darken
 };
