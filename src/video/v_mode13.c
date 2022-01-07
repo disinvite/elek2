@@ -276,7 +276,7 @@ static void redrawChanged(void) {
             // TODO: right?
             DRect_Add(x*24, y*24, x*24 + 24, y*24 + 24);
 
-            for (layer = 0; layer < 3; layer++) {
+            for (layer = 0; layer < 4; layer++) {
                 int val = current_room[layer][y*13 + x];
                 if (val)
                     draw24(val >> 6, val & 63, x, y);
