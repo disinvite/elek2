@@ -34,6 +34,7 @@ typedef struct video_drv_s {
     void (*fillRect)(rect_t *rect, byte color);
     void (*use_backbuf)(bool b);
     void (*darken)(bool darker);
+    void (*outline_tile)(int x, int y, int option);
 } video_drv_t;
 
 extern video_drv_t *mydrv;

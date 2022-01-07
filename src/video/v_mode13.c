@@ -409,6 +409,20 @@ static void darken(bool darker) {
     }
 }
 
+void outline_tile(int x, int y, int option) {
+    rect_t outline;
+    outline.x0 = 24*x;
+    outline.y0 = 24*y;
+    outline.x1 = outline.x0+24;
+    outline.y1 = outline.y0+24;
+    
+    switch (option) {
+        case 1:
+            strokeRect(&outline, 15);
+            break;
+    }
+}
+
 video_drv_t mode13_drv = {
     &init,
     &shutdown,
@@ -429,5 +443,6 @@ video_drv_t mode13_drv = {
     &strokeRect,
     &fillRect,
     &use_backbuf,
-    &darken
+    &darken,
+    &outline_tile
 };
