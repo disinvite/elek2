@@ -25,6 +25,13 @@ static int selectLayer(editor_t *ed, int layer) {
 }
 
 #pragma argsused
+static int selectValue(editor_t *ed, byte value) {
+    mockEditLastCalled = kSelectValue;
+    mockEditArgs[0] = value;
+    return 0;
+}
+
+#pragma argsused
 static int selectTile(editor_t *ed, byte tile) {
     mockEditLastCalled = kSelectTile;
     mockEditArgs[0] = tile;
@@ -32,10 +39,8 @@ static int selectTile(editor_t *ed, byte tile) {
 }
 
 #pragma argsused
-static int pencil(editor_t *ed, byte x, byte y) {
+static int pencil(editor_t *ed) {
     mockEditLastCalled = kPencil;
-    mockEditArgs[0] = x;
-    mockEditArgs[1] = y;
     return 0;
 }
 
@@ -54,6 +59,7 @@ static int closeModal(editor_t *ed) {
 
 editor_api_t mock_editor_api = {
     &selectLayer,
+    &selectValue,
     &selectTile,
     &pencil,
 

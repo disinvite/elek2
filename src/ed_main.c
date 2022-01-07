@@ -103,7 +103,7 @@ int main(void) {
     mydrv->load_sprites(getSpriteSlot(1), 1, &used_vram);
 
     EdControl_Setup(&ed, &editor_api);
-    editor_api.selectTile(&ed, 5);
+    editor_api.selectValue(&ed, 5);
     editor_api.openModal(&ed, &welcomeMsg);
     
     changeRoom(0);
@@ -156,6 +156,8 @@ int main(void) {
                 ed.state = kStateNormal;
                 break;
         }
+
+        mydrv->outline_tile(ed.tile_selected % 13, ed.tile_selected / 13, 1);
 
         // Pointer (and other overlays) drawn last.
         // Reasonable to expect these to update every frame.

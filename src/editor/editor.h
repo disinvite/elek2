@@ -37,14 +37,18 @@ typedef struct {
     // which layer will be modified
     int edit_layer;
 
-    // which tile to draw
+    // which tile to draw on
     byte tile_selected;
+
+    // which value to draw
+    byte value_selected;
 } editor_t;
 
 typedef struct {
     int (*selectLayer)(editor_t *ed, int layer);
+    int (*selectValue)(editor_t *ed, byte value);
     int (*selectTile)(editor_t *ed, byte tile);
-    int (*pencil)(editor_t *ed, byte x, byte y);
+    int (*pencil)(editor_t *ed);
 
     int (*openModal)(editor_t *ed, modal_t *modal);
     int (*closeModal)(editor_t *ed);

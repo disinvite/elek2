@@ -31,18 +31,12 @@ int pencil_test(void) {
     if (mockEditLastCalled != kPencil)
         return 1;
 
-    if (mockEditArgs[0] != 0 && mockEditArgs[1] != 0)
-        return 1;
-
     MockEditReset();
 
     if (Mouse_Event(200, 50, true, false))
         return 1;
 
     if (mockEditLastCalled != kPencil)
-        return 1;
-
-    if (mockEditArgs[0] != 8 && mockEditArgs[1] != 2)
         return 1;
 
     return 0;

@@ -39,36 +39,21 @@ int pencil_test(void) {
     ed.state = kStateNormal;
     memset(current_room, 0, kRoomSize);
     ed.edit_layer = 1;
-    ed.tile_selected = 0x80;
     
+    if (ed_func->selectValue(&ed, 0x80))
+        return 1;
+
+    // TODO: macro for x,y conversion
+    if (ed_func->selectTile(&ed, 68))
+        return 1;
+
     // Use different values for x and y to help verify that it put the
     // value in the correct spot.
-    if (ed_func->pencil(&ed, 3, 5))
+    if (ed_func->pencil(&ed))
         return 1;
 
     if (current_room[1][5 * 13 + 3] != 0x80)
         return 1;
-
-    return 0;
-}
-
-/// Should fail if we try to use the pencil on an invalid X or Y value.
-int invalid_pencil(void) {
-    editor_t ed;
-
-    ed.state = kStateNormal;
-    ed.edit_layer = 1;
-    ed.tile_selected = 0x80;
-
-    // invalid xpos
-    if (!ed_func->pencil(&ed, 20, 2))
-        return -1;
-
-    // invalid ypos
-    // Intentionally choosing a ypos that is inside the range for xpos.
-    // If the dimensions of the array change, an alarm should go off here.
-    if (!ed_func->pencil(&ed, 2, 12))
-        return -1;
 
     return 0;
 }
@@ -82,7 +67,7 @@ int pencil_wrong_state(void) {
     ed.state = kStateShowModal;
     
     // Should fail to update
-    if (!ed_func->pencil(&ed, 3, 5))
+    if (!ed_func->pencil(&ed))
         return 1;
 
     return 0;
@@ -123,18 +108,19 @@ int screenUpdate_test(void) {
     memset(current_room, 0, kRoomSize);
     ed.state = kStateNormal;
     ed.edit_layer = 0;
-    ed.tile_selected = 0;
+    ed.tile_selected = 68;
+    ed.value_selected = 0;
     memset(tileUpdateX, 0, sizeof(tileUpdateX));
     memset(tileUpdateY, 0, sizeof(tileUpdateY));
     Screen_AckUpdates();
 
     // Should NOT modify anything
-    ed_func->pencil(&ed, 3, 5);
+    ed_func->pencil(&ed);
     if (tileUpdatePtr > 0)
         return 1;
 
-    ed.tile_selected = 0x80;
-    ed_func->pencil(&ed, 3, 5);
+    ed.value_selected = 0x80;
+    ed_func->pencil(&ed);
 
     if (tileUpdatePtr != 1)
         return 1;
@@ -149,7 +135,6 @@ int screenUpdate_test(void) {
 test_t tests[] = {
     // editing tool tests
     {"pencil update", &pencil_test},
-    {"pencil reject invalid xy", &invalid_pencil},
     {"select layer", &selectLayer_test},
     {"select layer reject invalid layer", &invalid_selectLayer},
     {"screen update tracker", &screenUpdate_test},

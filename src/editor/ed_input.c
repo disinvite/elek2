@@ -20,8 +20,12 @@ static void MouseScalePoints(int xin, int yin, int *xout, int *yout) {
 // TODO: What are the return values here.
 static int MouseNormal(int gx, int gy, bool lbutton, bool rbutton) {
     // TODO: note mouse points are already scaled.
-    if (lbutton)
-        api->pencil(ed, gx, gy);
+    if (lbutton) {
+        api->selectTile(ed, gy * 13 + gx);
+        api->pencil(ed);
+    } else {
+        api->selectTile(ed, gy * 13 + gx);
+    }
 
     return 0;
 }
@@ -29,6 +33,10 @@ static int MouseNormal(int gx, int gy, bool lbutton, bool rbutton) {
 int Mouse_Event(int x, int y, bool lbutton, bool rbutton) {
     int gx, gy;
     MouseScalePoints(x, y, &gx, &gy);
+
+    // 8px dead zone where there aren't any tiles
+    if (x >= 624 || y >= 192)
+        return 0;
 
     // TODO: switch mode.
     switch(ed->state) {

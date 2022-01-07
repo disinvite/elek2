@@ -12,6 +12,10 @@ static int checkTileXY(byte x, byte y) {
     return (x < 14) && (y < 8);
 }
 
+static void TileChanged(byte tile) {
+    Screen_TileChanged(tile % 13, tile / 13);
+}
+
 // Main API
 
 static int selectLayer(editor_t *ed, int layer) {
@@ -22,22 +26,32 @@ static int selectLayer(editor_t *ed, int layer) {
     return 0;
 }
 
+// Which value will be drawn
+static int selectValue(editor_t *ed, byte value) {
+    ed->value_selected = value;
+    return 0;
+}
+
+// Which tile will be drawn on
 static int selectTile(editor_t *ed, byte tile) {
+    if (tile > 103)
+        return 1;
+
+    if (tile != ed->tile_selected)
+        TileChanged(ed->tile_selected);
+
     ed->tile_selected = tile;
     return 0;
 }
 
-static int pencil(editor_t *ed, byte x, byte y) {
-    if (!checkTileXY(x, y))
-        return -1;
-
+static int pencil(editor_t *ed) {
     // Can only edit in normal edit mode.
     if (ed->state != kStateNormal)
         return -1;
 
-    if (current_room[ed->edit_layer][y*13 + x] != ed->tile_selected) {
-        current_room[ed->edit_layer][y*13 + x] = ed->tile_selected;
-        Screen_TileChanged(x, y);
+    if (current_room[ed->edit_layer][ed->tile_selected] != ed->value_selected) {
+        current_room[ed->edit_layer][ed->tile_selected] = ed->value_selected;
+        TileChanged(ed->tile_selected);
     }
     return 0;
 }
@@ -63,6 +77,7 @@ static int closeModal(editor_t *ed) {
 
 editor_api_t editor_api = {
     &selectLayer,
+    &selectValue,
     &selectTile,
     &pencil,
 
