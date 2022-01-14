@@ -2,6 +2,7 @@
 #define EDITOR_EDITOR_H
 
 #include "common/types.h"
+#include "ui/modal.h"
 
 typedef enum {
     kStateNormal = 0,
@@ -10,17 +11,6 @@ typedef enum {
     kStateHideModal,
     kStateChangeRoom
 } ed_state_t;
-
-typedef struct {
-    char *text;
-    void (*fn)(void);
-} button_t;
-
-typedef struct {
-    char *text;
-    button_t *buttons[3]; // 3?
-    void (*onClose)(void);
-} modal_t;
 
 typedef struct {
     // Editor as state machine.

@@ -11,6 +11,7 @@
 #include "sprite.h"
 #include "input/keyb.h"
 #include "input/mouse.h"
+#include "ui/modal.h"
 #include "ui/msgbar.h"
 #include "video/video.h"
 #include "video/v_mode13.h"
@@ -28,7 +29,7 @@ layer_ptr_t layers;
 button_t btnOkGeneric = {"OK", 0};
 
 modal_t welcomeMsg = {
-    "ELEK2 EDITOR by disinvite.",
+    "ELEK2 EDITOR\n\n\nby disinvite.",
     {&btnOkGeneric, 0, 0},
     0
 };
@@ -147,7 +148,7 @@ int main(void) {
 
         switch (ed.state) {
             case kStateShowModal:
-                drawTheBox();
+                Modal_Draw(&welcomeMsg);
                 ed.state = kStateModalNormal;
                 break;
 

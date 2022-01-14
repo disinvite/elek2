@@ -18,6 +18,7 @@ objs =  \
 
 ed_objs = \
 	ed_main.obj \
+	common\\string.obj \
 	editor\\editor.obj \
 	editor\\ed_input.obj \
 	map\\mapfile.obj \
@@ -25,6 +26,7 @@ ed_objs = \
 	input\\keyb.obj \
 	input\\mouse.obj \
 	input\\mouse_a.obj \
+	ui\\modal.obj \
 	ui\\msgbar.obj \
 	video\\video.obj \
 	video\\v_mode13.obj \
