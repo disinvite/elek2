@@ -32,7 +32,7 @@ t_umsg_objs = \
 	test\\tester.obj \
 	test\\t_umsg.obj
 
-all: tmap tscr tedit tctrl tumsg
+all: tmap tscr tedit tctrl tumsg tstr
 
 tmap: $(t_map_objs)
   TLINK $(LDFLAGS) @&&!
@@ -58,6 +58,9 @@ tumsg: $(t_umsg_objs)
   TLINK $(LDFLAGS) @&&!
 C0$(MODEL).obj $**
 !,$@,$@,CL
+
+tstr: common\\string.obj test\\tester.obj test\\t_str.obj
+	tlink $(LDFLAGS) c0$(MODEL).obj $**,$@,,CL
 
 .c.obj:
   BCC $(CCFLAGS) -L$(DIR_LIB) -I$(DIR_HEADERS) -c -o$*.obj $<
