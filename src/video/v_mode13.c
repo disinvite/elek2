@@ -100,16 +100,21 @@ static void type_msg(char *msg, int x, int y, byte color) {
     byte b;
     int ofs;
     int t;
-    int len;
+    int startx = x;
+    char *tstr = msg;
 
     if (!pixel_font)
         return;
 
-    //byte *start = &buf[320 * y];
-    len = strlen(msg);
+    while (*tstr) {
+        if (*tstr == '\n') {
+            x = startx;
+            y += 8;
+            tstr++;
+            continue;
+        }
 
-    for (i = 0; i < len; i++) {
-        ofs = msg[i] & 127;
+        ofs = *tstr++ & 127;
         for (row = 0; row < 8; row++) {
             b = pixel_font[8*ofs + row];
             for (t = 0; t < 8; t++) {

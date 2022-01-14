@@ -1,7 +1,6 @@
 #include "ui/modal.h"
 
 #include "common/string.h"
-#include <string.h>
 
 #include "video/video.h"
 
@@ -13,18 +12,11 @@
 
 
 void Modal_Draw(modal_t *modal) {
-    int i;
     int msgx, msgy;
     int pixx, pixy;
-    char buf[150];
-    char *tstart;
-    char *tend;
 
     rect_t rect = {0, 30, 0, 0};
     rect_t ok_rect = {0, 0, 0, 0};
-
-    strncpy(buf, modal->text, 149);
-    buf[149] = '\0';
 
     // figure out how big the box should be
     string_getdim(modal->text, &msgx, &msgy);
@@ -51,19 +43,10 @@ void Modal_Draw(modal_t *modal) {
     mydrv->strokeRect(&rect, 5);
 
     // type main modal text
-    tstart = buf;
-    tend = 0;
-    for (i = 0; i < msgy; i++) {
-        tend = strchr(tstart, '\n');
-        *tend = '\0';
-
-        mydrv->type_msg(tstart,
-            rect.x0 + kModalPadding,
-            rect.y0 + kModalPadding + 8*i,
-            9);
-
-        tstart = (tend + 1);
-    }
+    mydrv->type_msg(modal->text,
+        rect.x0 + kModalPadding,
+        rect.y0 + kModalPadding,
+        9);
 
     // draw the OK button
     mydrv->strokeRect(&ok_rect, 5);
