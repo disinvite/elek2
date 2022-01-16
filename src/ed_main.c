@@ -26,10 +26,12 @@ layer_ptr_t layers;
 
 
 // No special function when you click it.
-button_t btnOkGeneric = {"OK", 0};
+button_t btnOkGeneric = {"OK", {0, 0, 0, 0}, 0};
 
 modal_t welcomeMsg = {
     "ELEK2 EDITOR\n\n\nby disinvite.",
+    {0, 0, 0, 0},
+    {0, 0, 0},
     {&btnOkGeneric, 0, 0},
     0
 };
@@ -148,6 +150,7 @@ int main(void) {
 
         switch (ed.state) {
             case kStateShowModal:
+                Modal_Prepare(&welcomeMsg);
                 Modal_Draw(&welcomeMsg);
                 ed.state = kStateModalNormal;
                 break;

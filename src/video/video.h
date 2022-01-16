@@ -9,10 +9,6 @@ typedef struct color_s {
     byte r,g,b;
 } color_t;
 
-typedef struct rect_s {
-    int x0, y0, x1, y1;
-} rect_t;
-
 typedef struct video_drv_s {
     void (*init)(void);
     void (*shutdown)(void);
