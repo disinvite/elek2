@@ -6,6 +6,7 @@
 
 #include "editor/editor.h"
 #include "editor/ed_input.h"
+#include "editor/update.h"
 #include "map/mapfile.h"
 #include "map/screen.h"
 #include "sprite.h"
@@ -44,13 +45,16 @@ void loadCursor(void) {
 }
 
 void displayMap(void) {
+    int i;
+
     // Rebuild backbuffer as the basis for drawing this room.
     mydrv->use_backbuf(true);
     mydrv->clear();
-    mydrv->draw_plane(0, false);
-    mydrv->draw_plane(1, false);
-    mydrv->draw_plane(2, false);
-    mydrv->draw_plane(3, false);
+
+    for (i = 0; i < 4; i++) {
+        if (ed.layer_display & (1 << i))
+            mydrv->draw_plane(i, false);
+    }
 
     // Copy back buffer to offscreen.
     mydrv->copy_backbuf();
@@ -108,6 +112,7 @@ int main(void) {
     EdControl_Setup(&ed, &editor_api);
     editor_api.selectValue(&ed, 5);
     editor_api.openModal(&ed, &welcomeMsg);
+    ed.layer_display = 1;
     
     changeRoom(0);
     MsgBar_Set("stay awhile and listen");
@@ -143,7 +148,8 @@ int main(void) {
 
         // If any tiles just changed as a result of events
         // Update them on the backbuffer
-        mydrv->redrawChanged();
+        // TODO: layer flags hardcoded here
+        mydrv->redrawChanged(ed.layer_display);
 
         // Update anything we need to redraw
         mydrv->drect();
@@ -162,6 +168,11 @@ int main(void) {
         }
 
         mydrv->outline_tile(ed.tile_selected % 13, ed.tile_selected / 13, 1);
+
+        if (update_latest) {
+            MsgBar_Set(update_latest);
+            update_latest = 0;
+        }
 
         // Pointer (and other overlays) drawn last.
         // Reasonable to expect these to update every frame.

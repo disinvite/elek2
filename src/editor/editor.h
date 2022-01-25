@@ -21,8 +21,8 @@ typedef struct {
     // In any other state this can be NULL
     modal_t *current_modal;
 
-    // whether each layer is displayed 
-    bool layer_display[4];
+    // byte flags: whether each layer is displayed 
+    byte layer_display;
 
     // which layer will be modified
     int edit_layer;
@@ -32,6 +32,9 @@ typedef struct {
 
     // which value to draw
     byte value_selected;
+
+    // pointer to message text if we should print one on this tick
+    char *newmsg;
 } editor_t;
 
 typedef struct {

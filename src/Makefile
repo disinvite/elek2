@@ -21,6 +21,7 @@ ed_objs = \
 	common\\string.obj \
 	editor\\editor.obj \
 	editor\\ed_input.obj \
+	editor\\update.obj \
 	map\\mapfile.obj \
 	map\\screen.obj \
 	input\\keyb.obj \
@@ -35,8 +36,10 @@ ed_objs = \
 all: elek2 editor
 
 clean:
+		del editor\\*.obj
 		del input\\*.obj
 		del map\\*.obj
+		del ui\\*.obj
 		del video\\*.obj
 		del *.obj
 

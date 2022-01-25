@@ -262,7 +262,8 @@ static void draw_plane(int id, bool fast) {
     }
 }
 
-static void redrawChanged(void) {
+// TODO: layer flags here
+static void redrawChanged(int layer_flags) {
     int i;
     int layer;
     byte *tbuf;
@@ -282,9 +283,11 @@ static void redrawChanged(void) {
             DRect_Add(x*24, y*24, x*24 + 24, y*24 + 24);
 
             for (layer = 0; layer < 4; layer++) {
-                int val = current_room[layer][y*13 + x];
-                if (val)
-                    draw24(val >> 6, val & 63, x, y);
+                if (layer_flags & (1 << layer)) {
+                    int val = current_room[layer][y*13 + x];
+                    if (val)
+                        draw24(val >> 6, val & 63, x, y);
+                }
             }
         }
 
@@ -414,7 +417,7 @@ static void darken(bool darker) {
     }
 }
 
-void outline_tile(int x, int y, int option) {
+static void outline_tile(int x, int y, int option) {
     rect_t outline;
     outline.x0 = 24*x;
     outline.y0 = 24*y;

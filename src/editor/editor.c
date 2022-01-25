@@ -1,5 +1,6 @@
 #include "common/types.h"
 #include "editor/editor.h"
+#include "editor/update.h"
 #include "map/screen.h"
 
 // Helpers
@@ -23,6 +24,7 @@ static int selectLayer(editor_t *ed, int layer) {
         return -1;
 
     ed->edit_layer = layer;
+    Update_Register(ed, kLayerEditSelect, 0);
     return 0;
 }
 
@@ -53,6 +55,8 @@ static int pencil(editor_t *ed) {
         current_room[ed->edit_layer][ed->tile_selected] = ed->value_selected;
         TileChanged(ed->tile_selected);
     }
+
+    Update_Register(ed, kPencil, 0);
     return 0;
 }
 
