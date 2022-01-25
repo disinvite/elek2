@@ -52,6 +52,31 @@ static int KeyNormal(int scancode, bool keydown) {
     if (scancode >= SC_1 && scancode <= SC_4)
         api->selectLayer(ed, scancode - SC_1);
 
+    switch (scancode) {
+        case SC_1:
+        case SC_2:
+        case SC_3:
+        case SC_4:
+            api->selectLayer(ed, scancode - SC_1);
+            break;
+
+        case SC_A:
+            api->toggleLayer(ed, 0);
+            break;
+
+        case SC_S:
+            api->toggleLayer(ed, 1);
+            break;
+
+        case SC_D:
+            api->toggleLayer(ed, 2);
+            break;
+
+        case SC_F:
+            api->toggleLayer(ed, 3);
+            break;
+    }
+
     return 0;
 }
 

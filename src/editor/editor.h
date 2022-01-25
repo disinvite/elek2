@@ -39,6 +39,7 @@ typedef struct {
 
 typedef struct {
     int (*selectLayer)(editor_t *ed, int layer);
+    int (*toggleLayer)(editor_t *ed, int layer);
     int (*selectValue)(editor_t *ed, byte value);
     int (*selectTile)(editor_t *ed, byte tile);
     int (*pencil)(editor_t *ed);

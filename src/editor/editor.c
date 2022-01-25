@@ -28,6 +28,16 @@ static int selectLayer(editor_t *ed, int layer) {
     return 0;
 }
 
+static int toggleLayer(editor_t *ed, int layer) {
+    if (!checkLayer(layer))
+        return -1;
+
+    ed->layer_display ^= (1 << layer);
+    ed->state = kStateChangeRoom; // redraw required.
+    Update_Register(ed, kLayerSelect, layer);
+    return 0;
+}
+
 // Which value will be drawn
 static int selectValue(editor_t *ed, byte value) {
     ed->value_selected = value;
@@ -81,6 +91,7 @@ static int closeModal(editor_t *ed) {
 
 editor_api_t editor_api = {
     &selectLayer,
+    &toggleLayer,
     &selectValue,
     &selectTile,
     &pencil,

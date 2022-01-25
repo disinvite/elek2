@@ -155,6 +155,11 @@ int main(void) {
         mydrv->drect();
 
         switch (ed.state) {
+            case kStateChangeRoom:
+                displayMap();
+                ed.state = kStateNormal;
+                break;
+
             case kStateShowModal:
                 Modal_Prepare(&welcomeMsg);
                 Modal_Draw(&welcomeMsg);

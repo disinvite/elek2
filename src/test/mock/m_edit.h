@@ -6,6 +6,7 @@
 
 typedef enum {
     kSelectLayer = 1,
+    kToggleLayer,
     kSelectValue,
     kSelectTile,
     kPencil,

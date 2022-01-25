@@ -25,6 +25,13 @@ static int selectLayer(editor_t *ed, int layer) {
 }
 
 #pragma argsused
+static int toggleLayer(editor_t *ed, int layer) {
+    mockEditLastCalled = kToggleLayer;
+    mockEditArgs[0] = layer;
+    return 0;
+}
+
+#pragma argsused
 static int selectValue(editor_t *ed, byte value) {
     mockEditLastCalled = kSelectValue;
     mockEditArgs[0] = value;
@@ -59,6 +66,7 @@ static int closeModal(editor_t *ed) {
 
 editor_api_t mock_editor_api = {
     &selectLayer,
+    &toggleLayer,
     &selectValue,
     &selectTile,
     &pencil,
