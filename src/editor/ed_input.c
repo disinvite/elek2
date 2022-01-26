@@ -7,6 +7,8 @@
 static editor_t *ed;
 static editor_api_t *api;
 
+static bool keyDebounce[101];
+
 void EdControl_Setup(editor_t *_ed, editor_api_t *_api) {
     ed = _ed;
     api = _api;
@@ -48,7 +50,6 @@ int Mouse_Event(int x, int y, bool lbutton, bool rbutton) {
 }
 
 static int KeyNormal(int scancode, bool keydown) {
-    // TODO: keydown or keyup check
     if (scancode >= SC_1 && scancode <= SC_4)
         api->selectLayer(ed, scancode - SC_1);
 
@@ -89,6 +90,16 @@ static int KeyModal(int scancode, bool keydown) {
 }
 
 int Keyb_Event(int scancode, bool keydown) {
+    // TODO: this check applied to all key options?
+    if (keydown == keyDebounce[scancode])
+        return 0;
+
+    keyDebounce[scancode] = keydown;
+
+    // TODO: it's a little dumb
+    if (!keydown)
+        return 0;
+
     switch (ed->state) {
         case kStateNormal:
             return KeyNormal(scancode, keydown);
